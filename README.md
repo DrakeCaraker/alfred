@@ -2,6 +2,8 @@
 
 Alfred sets up Claude Code for your project. You answer two questions — what you do and how much you code — and it generates a tailored environment with guardrails, automation, and progressive teaching that adapts to you.
 
+**Prerequisites:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed (`npm install -g @anthropic-ai/claude-code`) with an Anthropic API key or Claude Max/Team subscription. See the [setup guide](https://docs.anthropic.com/en/docs/claude-code/getting-started) for platform-specific instructions.
+
 ```bash
 git clone https://github.com/DrakeCaraker/alfred.git my-project
 cd my-project && claude
