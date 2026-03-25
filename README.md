@@ -1,173 +1,152 @@
 # Alfred
 
-**Your AI-assisted development environment, tailored to how you actually work.**
-
-Alfred is a template repository for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Clone it into any project, answer two questions, and get a development environment that knows your domain, enforces best practices, and teaches you as you go — then goes silent once you've learned.
-
-```
-cd your-project
-claude
-> /bootstrap
-
-What best describes your work?
-  1. ML / Data Science
-  2. Research
-  3. Business Analytics
-  4. Product Analytics
-  5. BI Platform
-  6. General
-> 1
-
-How comfortable are you with coding?
-  1. Beginner
-  2. Intermediate
-  3. Advanced
-> 2
-
-Describe your project in one sentence:
-> XGBoost ensemble for stable feature importance
-
-Alfred is set up for ML / Data Science development.
-- CLAUDE.md generated with domain-specific guardrails
-- Onboarding tracking initialized (0/8 patterns)
-
-Start working — patterns are explained as you encounter them.
-Or run /teach to learn proactively, /status to see progress.
-```
-
-## What Alfred Does
-
-**1. Knows your domain.** Six personas — ML/DS, Research, Business Analytics, Product Analytics, BI Platform, and General — each with tailored guardrails, analogies, directory structures, and error context. An ML scientist gets "think of commits as experiment checkpoints." A business analyst gets "think of commits as saving a version of the spreadsheet."
-
-**2. Teaches progressively.** Alfred teaches 8 development patterns — not all at once, but as you encounter them. The first time you run `/commit`, Alfred explains what a save point is and why it matters, using language from your domain. By the third time, it goes silent.
-
-**3. Gets out of your way.** Every explanation passes through an *explain gate*. Once you've seen a pattern 3 times without asking "why?", Alfred graduates you and stops explaining. Advanced users skip teaching entirely — all 8 patterns start in auto-mode.
-
-**4. Learns from you.** When you correct Alfred's approach, it saves a feedback memory. Run `/self-improve` to promote recurring corrections into permanent CLAUDE.md rules or automated hooks. The system literally writes its own rules from watching you work.
-
-## Quick Start
+Alfred sets up Claude Code for your project. You answer two questions — what you do and how much you code — and it generates a tailored environment with guardrails, automation, and progressive teaching that adapts to you.
 
 ```bash
-# Clone into an existing project, or start fresh
 git clone https://github.com/DrakeCaraker/alfred.git my-project
-cd my-project
-claude
-
-# Inside Claude Code:
-/bootstrap      # answer 2 questions, get your environment
-/teach          # learn your first pattern
-/status         # check your progress
+cd my-project && claude
 ```
 
-After cloning, activate the pre-push safety hook:
+```
+> /bootstrap
+
+What best describes your work?  1
+How comfortable are you with coding?  2
+Describe your project:  quarterly revenue forecasting model
+
+Done. CLAUDE.md generated, guardrails active, 0/8 patterns learned.
+Start working — I'll explain things as they come up.
+```
+
+That's it. Start working.
+
+---
+
+## Why
+
+Most people fail at AI-assisted development not because the AI is bad, but because the surrounding habits aren't there — scoping work before starting, committing frequently, isolating experiments on branches, tracing results to source code. These habits are simple but easy to skip, and skipping them is how you end up with half-finished work on main, lost changes, and results nobody can reproduce.
+
+Alfred teaches these habits using language you already understand. An ML scientist hears "think of commits as experiment checkpoints." A business analyst hears "saving a version of the spreadsheet." A researcher hears "signing a lab notebook page." Same concept, different framing — because the framing is what makes it stick.
+
+Then it shuts up. Once you've seen a concept three times without asking "why?", Alfred stops explaining and just does it. Advanced users start in silent mode from day one.
+
+---
+
+## Get started
+
+After `/bootstrap`, three commands cover most of what you need:
+
+| Command | When to use it |
+|---------|---------------|
+| `/new-work` | Starting a task — creates a branch, scopes the work |
+| `/commit` | Saving progress — checks for dangerous files first |
+| `/teach` | Curious about a pattern — delivers a lesson in your domain's language |
+
+Everything else is available but not required upfront:
+
+<details>
+<summary>All commands</summary>
+
+| Command | What it does |
+|---------|-------------|
+| `/bootstrap` | Picks your persona, generates CLAUDE.md, initializes tracking |
+| `/teach` | Next pattern lesson — or `/teach all` for progress, `/teach <name>` to revisit |
+| `/status` | Graduated patterns, level, next steps |
+| `/commit` | Safe commit — blocks binaries, warns on large files |
+| `/new-work` | Scoped branch with task list |
+| `/ci-fix` | Auto-fix loop: lint, format, typecheck, test until green |
+| `/self-improve` | Promote recurring corrections to permanent rules |
+| `/health-check` | Project maturity assessment (5 levels) |
+| `/safe-refactor` | One change at a time, auto-rollback on test failure |
+| `/experiment-summary` | Inventory results with provenance |
+| `/pr` | Push and open a pull request |
+
+</details>
+
+---
+
+## What it teaches
+
+Alfred teaches 8 patterns — the habits that make AI-assisted development work. They're taught in order, one at a time, as you encounter the situations where they matter.
+
+**1. Context before action** — Check where you are before you start. The session-start hook does this automatically.
+
+**2. Scope before work** — Name what you're doing and create a branch before writing code. `/new-work`
+
+**3. Save points** — Commit frequently. `/commit` adds safety checks.
+
+**4. Safe experimentation** — Use branches to try things. If it works, merge. If not, delete.
+
+**5. One change, one test** — Change one thing, test, commit or rollback. `/safe-refactor`
+
+**6. Automated recovery** — Let the machine fix lint and format errors. `/ci-fix`
+
+**7. Provenance** — Every result traces to the code that produced it. `/experiment-summary`
+
+**8. Self-improvement** — The system learns from your corrections. `/self-improve`
+
+Run `/teach` to learn the next one. Run `/status` to see which you've graduated.
+
+---
+
+## How it adapts
+
+**Explains, then stops.** The first time you run `/commit`, Alfred explains what a save point is using your domain's analogy. The third time, it goes silent. If you ever say "I know" or "skip," it graduates you immediately.
+
+**Learns from corrections.** When you say "no, don't do that," Alfred saves a feedback memory. If the same correction comes up repeatedly, `/self-improve` promotes it to a permanent rule in CLAUDE.md — or even an automated hook that prevents the mistake entirely.
+
+```
+Feedback memory  →  CLAUDE.md rule  →  Automated hook
+(soft, one session)  (durable, every session)  (enforced, blocks the action)
+```
+
+**Resumes across sessions.** When a session ends, Alfred bookmarks what you were working on. Next session, it picks up where you left off.
+
+---
+
+## Personas
+
+Your answer to "what best describes your work?" selects a persona. Each one provides guardrails, teaching analogies, directory structure, recommended tools, and error interpretations specific to your domain.
+
+| # | Persona | Example guardrail |
+|---|---------|-------------------|
+| 1 | **ML / Data Science** | Never commit .pkl files; use fixed random seeds |
+| 2 | **Research** | Never modify raw data; report significance tests |
+| 3 | **Business Analytics** | Never hard-code dates; validate join row counts |
+| 4 | **Product Analytics** | Never peek at results before planned end date |
+| 5 | **BI Platform** | Never DROP production tables without backup |
+| 6 | **General** | Never commit .env files; run tests before pushing |
+
+Each persona translates the same 8 patterns into different language. "Safe experimentation" becomes "hyperparameter sweep in isolation" for ML, "pilot study" for research, and "copy of the report" for business analytics.
+
+---
+
+## Setup notes
+
+Activate the pre-push hook after cloning (blocks binaries and direct pushes to main):
+
 ```bash
 git config core.hooksPath .githooks
 ```
 
-## The 8 Patterns
+Alfred also installs these hooks via `.claude/settings.json`:
+- **Format on write** — auto-formats Python, JS/TS, Go, Rust, R, SQL after every edit
+- **Session start** — git status, branch safety, onboarding progress, session resume
+- **Session end** — bookmarks your task context and captures feedback
+- **Pre-compact** — preserves critical context before conversation compression
 
-These are the building blocks of effective AI-assisted development. Alfred teaches them in order, adapting the language to your persona.
-
-| # | Pattern | Principle | Command |
-|---|---------|-----------|---------|
-| 1 | Context before action | Know where you are before you move | session-start hook |
-| 2 | Scope before work | Name what you're doing before you do it | `/new-work` |
-| 3 | Save points | Checkpoint progress so you can always go back | `/commit` |
-| 4 | Safe experimentation | Try things without risk to working code | branching via `/new-work` |
-| 5 | One change, one test | Change deliberately, verify each step | `/safe-refactor` |
-| 6 | Automated recovery | Let machines fix mechanical errors | `/ci-fix` |
-| 7 | Provenance | Every result traces to a source | `/experiment-summary` |
-| 8 | Self-improvement | The system learns from corrections | `/self-improve` |
-
-Run `/teach` to learn the next pattern. Run `/teach all` to see your graduation status. Run `/teach save-points` to revisit a specific pattern.
-
-## Personas
-
-Each persona provides domain context, guardrails, analogies for all 8 patterns, starter directories, recommended tools, work product templates at 4 complexity levels, and domain-specific error interpretations.
-
-| Persona | Domain | Example guardrail |
-|---------|--------|-------------------|
-| **ML / Data Science** | Models, experiments, pipelines | Never commit .pkl files; always use fixed random seeds |
-| **Research** | Papers, statistics, reproducibility | Never modify raw data; always report significance tests |
-| **Business Analytics** | Dashboards, SQL, reports | Never hard-code dates; always validate join row counts |
-| **Product Analytics** | A/B tests, funnels, metrics | Never peek at results before planned end date |
-| **BI Platform** | dbt, warehouses, data quality | Never DROP production tables without backup |
-| **General** | Software development, any language | Never commit .env files; always run tests before pushing |
-
-## Commands
-
-| Command | What it does |
-|---------|-------------|
-| `/bootstrap` | Picks persona, generates CLAUDE.md, initializes onboarding |
-| `/teach` | Delivers the next pattern lesson with domain-specific analogies |
-| `/status` | Shows graduated patterns, level, and next steps |
-| `/commit` | Safe commit — blocks binaries, warns on large files |
-| `/new-work` | Creates a scoped branch with a task list |
-| `/ci-fix` | Auto-fix loop: lint, format, typecheck, test — until green |
-| `/self-improve` | Promotes feedback memories to CLAUDE.md rules or hooks |
-| `/health-check` | Assesses project maturity across 5 levels |
-| `/safe-refactor` | Characterize, refactor one step at a time, auto-rollback on failure |
-| `/experiment-summary` | Inventories results with provenance metadata |
-| `/pr` | Push and open a PR with lint gates |
-
-## How the Explain Gate Works
-
-```
-Action triggered (e.g., /commit)
-    |
-Has user graduated this pattern? -- yes --> just do it
-    | no
-Seen explanation < 3 times? -- yes --> full explanation in domain language
-    | no
-User asked "why?" last time? -- yes --> full explanation
-    | no
-Brief reminder, then do it
-```
-
-Graduation happens when you've seen a pattern 3 times without asking "why?" — or instantly if you say "I know, skip."
-
-## The Self-Improvement Loop
-
-Corrections flow through three levels of permanence:
-
-```
-Feedback memory        (soft — this session learned X)
-    |  repeated 2+ times
-CLAUDE.md rule         (durable — every session enforces X)
-    |  still violated
-Hook / automated guard (enforced — blocks the action)
-```
-
-Run `/self-improve` to trigger promotion. The system proposes changes, you approve or reject.
-
-## Project Structure
-
-```
-.claude/
-  commands/       11 slash commands
-  hooks/          5 automation hooks
-  personas/       6 persona modules
-  settings.json   Hook configuration
-  tool-catalog.md Pattern-to-tool reference
-.githooks/
-  pre-push        Blocks binaries + main pushes
-```
-
-State files (created at runtime by `/bootstrap`):
-- `.claude/.onboarding-state.json` — persona, coding level, pattern graduation
-- `.claude/.session-bookmark.json` — task context for session resume
-- `.claude/.session-count` — session counter for self-improve nudges
+---
 
 ## Contributing
 
-To add a new persona:
+Add a persona:
 
-1. Create `.claude/personas/<name>.md` following the [9-section template](docs/AI_ASSISTED_DEV_GUIDE.md#adding-a-new-persona)
-2. Add the persona to the role question in `.claude/commands/bootstrap.md`
-3. Test: `/bootstrap` with the new persona, then `/teach`, `/status`
-4. Submit a PR
+1. Create `.claude/personas/<name>.md` with [all 9 sections](docs/AI_ASSISTED_DEV_GUIDE.md#adding-a-new-persona)
+2. Add it to the role question in `.claude/commands/bootstrap.md`
+3. Test: `/bootstrap` → `/teach` → `/status`
+4. PR
 
-See [`docs/AI_ASSISTED_DEV_GUIDE.md`](docs/AI_ASSISTED_DEV_GUIDE.md) for full system documentation.
+Full system docs: [`docs/AI_ASSISTED_DEV_GUIDE.md`](docs/AI_ASSISTED_DEV_GUIDE.md)
 
 ## License
 
