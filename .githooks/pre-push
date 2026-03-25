@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Pre-push hook: branch safety and file guards
+# Install: git config core.hooksPath .githooks
+
+# --- 1. Block direct pushes to main ---
+current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
+    echo "BLOCKED: Direct push to main/master is not allowed."
+    echo "  Create a feature branch: git checkout -b feat/<topic>"
+    echo "  To override (emergency only): git push --no-verify"
+    exit 1
+fi
+
+# --- 2. Drift warning (non-blocking) ---
+if [ "$current_branch" != "HEAD" ]; then
+    git fetch origin main --quiet 2>/dev/null || git fetch origin master --quiet 2>/dev/null
+    for base in main master; do
+        if git rev-parse "origin/$base" >/dev/null 2>&1; then
+            behind=$(git rev-list --count "HEAD..origin/$base" 2>/dev/null || echo 0)
+            if [ "$behind" -gt 0 ]; then
+                echo "WARNING: Branch '$current_branch' is $behind commit(s) behind origin/$base."
+                echo "  Consider rebasing: git rebase origin/$base"
+                echo ""
+            fi
+            break
+        fi
+    done
+fi
+
+# --- 3. File checks: block binaries and large files (blocking) ---
+MAX_SIZE=10485760  # 10MB
+BLOCKED_EXTENSIONS="pkl|pt|pth|h5|joblib|ckpt|safetensors"
+ERRORS=0
+
+while read local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        range="$local_sha"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+
+    files=$(git diff --name-only --diff-filter=ACM "$range" 2>/dev/null)
+
+    for file in $files; do
+        # Block binary artifact extensions
+        if echo "$file" | grep -qE "\.($BLOCKED_EXTENSIONS)$"; then
+            echo "BLOCKED: $file is a binary artifact. Remove it from the commit."
+            ERRORS=$((ERRORS + 1))
+            continue
+        fi
+
+        # Block files >10MB
+        if git cat-file -e "$local_sha:$file" 2>/dev/null; then
+            size=$(git cat-file -s "$local_sha:$file" 2>/dev/null || echo 0)
+            if [ "$size" -gt "$MAX_SIZE" ] 2>/dev/null; then
+                echo "BLOCKED: $file is $((size / 1024))KB (limit: $((MAX_SIZE / 1024))KB)"
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+    done
+done
+
+if [ "$ERRORS" -gt 0 ]; then
+    echo ""
+    echo "$ERRORS file(s) blocked. To override: git push --no-verify"
+    exit 1
+fi
+exit 0

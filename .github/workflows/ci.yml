@@ -1,0 +1,36 @@
+name: Alfred CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate JSON files
+        run: |
+          python -m json.tool .claude/settings.json > /dev/null
+          echo "settings.json: valid"
+
+      - name: Check shell script syntax
+        run: |
+          for sh in .claude/hooks/*.sh .githooks/pre-push; do
+            bash -n "$sh"
+            echo "$sh: syntax OK"
+          done
+
+      - name: Make scripts executable
+        run: chmod +x .claude/hooks/*.sh .githooks/pre-push scripts/smoke-test.sh
+
+      - name: Run smoke test
+        run: bash scripts/smoke-test.sh
