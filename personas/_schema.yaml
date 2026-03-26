@@ -1,0 +1,57 @@
+# Alfred Persona Schema v1.0
+# This defines the structure for .claude/alfred-persona.yaml files
+
+schema_version: "1.0"
+
+fields:
+  name:
+    type: string
+    description: "Emergent persona name — discovered through usage, not predefined"
+    example: "Data engineer who hates notebooks"
+
+  domain:
+    primary:
+      type: string
+      description: "Primary domain of expertise"
+      examples: ["machine-learning", "web-development", "data-engineering", "research"]
+    secondary:
+      type: list[string]
+      description: "Secondary domains"
+
+  explain:
+    level:
+      type: enum
+      values: [novice, intermediate, expert]
+      description: "How detailed explanations should be"
+    known_concepts:
+      type: list[string]
+      description: "Concepts the user already knows — skip explaining these"
+
+  behavior:
+    autonomy:
+      type: enum
+      values: [ask-first, suggest-then-do, just-do-it]
+      description: "How much autonomy Alfred takes"
+    commit_style:
+      type: enum
+      values: [conventional, free-form]
+      description: "Preferred commit message format"
+
+  patterns:
+    preferred_tools:
+      type: list[string]
+      description: "Tools the user prefers"
+    avoided_tools:
+      type: list[string]
+      description: "Tools the user has told Alfred not to use"
+    custom_rules:
+      type: list[string]
+      description: "User-specific rules learned from corrections"
+
+  evolution:
+    correction_count:
+      type: integer
+      description: "Total corrections received"
+    last_evolved:
+      type: iso8601
+      description: "Last time persona was auto-evolved"

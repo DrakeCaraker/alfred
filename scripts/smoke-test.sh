@@ -152,8 +152,43 @@ else
 fi
 echo ""
 
-# 9. Pilot infrastructure
-echo "9. Pilot infrastructure"
+# 9. Plugin structure
+echo "9. Plugin structure"
+for f in \
+    .claude-plugin/plugin.json \
+    package.json \
+    hooks/hooks.json \
+    alfred.schema.yaml \
+    personas/_schema.yaml \
+    personas/_default.yaml \
+    skills/using-alfred/SKILL.md \
+    skills/smart-suggestions/SKILL.md \
+    skills/persona-management/SKILL.md \
+    skills/persona-evolve/SKILL.md \
+    skills/collective-contribute/SKILL.md \
+    collective/signal_schema.yaml; do
+    test -f "$f"; check "Plugin: $f exists" "$?"
+done
+# Plugin commands mirror .claude/commands
+for cmd in bootstrap.md teach.md status.md commit.md new-work.md ci-fix.md self-improve.md health-check.md safe-refactor.md experiment-summary.md pr.md; do
+    test -f "commands/$cmd"; check "Plugin command: $cmd exists" "$?"
+done
+# Plugin hooks mirror .claude/hooks
+for hook in session-start.sh format-on-write.sh session-bookmark.sh feedback-capture.sh pre-compact.sh pilot-telemetry.sh; do
+    test -f "hooks/$hook"; check "Plugin hook: $hook exists" "$?"
+done
+# Plugin personas mirror .claude/personas
+for p in ml-ds.md research.md business-analytics.md product-analytics.md platform-bi.md general.md; do
+    test -f "personas/$p"; check "Plugin persona: $p exists" "$?"
+done
+# JSON validity for plugin manifests
+python3 -m json.tool .claude-plugin/plugin.json > /dev/null 2>&1; check "plugin.json is valid JSON" "$?"
+python3 -m json.tool package.json > /dev/null 2>&1; check "package.json is valid JSON" "$?"
+python3 -m json.tool hooks/hooks.json > /dev/null 2>&1; check "hooks.json is valid JSON" "$?"
+echo ""
+
+# 10. Pilot infrastructure
+echo "10. Pilot infrastructure"
 # PII scanner test suite
 if bash scripts/test-pii-scanner.sh > /dev/null 2>&1; then
     check "PII scanner test suite passes" "0"
