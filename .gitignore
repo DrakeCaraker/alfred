@@ -54,3 +54,8 @@ vendor/
 
 # Rust
 target/
+
+# Alfred runtime state
+.claude/.session-count
+.claude/.onboarding-state.json
+.claude/.session-bookmark.json
