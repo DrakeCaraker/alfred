@@ -78,7 +78,27 @@ if [ "$coding_level" != "beginner" ]; then
     fi
 fi
 
-# 5. Session counter + self-improvement nudge
+# 5a. Pilot consent nudge (sessions 1, 3, 5 only)
+if [ -f ".claude/.onboarding-state.json" ] && [ ! -f ".claude/.pilot-consent.json" ]; then
+    nudge_file=".claude/.pilot-nudge-count"
+    nudge_count=0
+    if [ -f "$nudge_file" ]; then
+        nudge_count=$(cat "$nudge_file" 2>/dev/null || echo 0)
+    fi
+    if [ "$nudge_count" -lt 5 ]; then
+        # Show nudge on counts 0, 2, 4 (sessions 1, 3, 5)
+        if [ "$((nudge_count % 2))" -eq 0 ]; then
+            echo "" >&2
+            echo "Pilot: Alfred has opt-in telemetry. Run /pilot-consent to learn what's collected." >&2
+        fi
+        echo "$((nudge_count + 1))" > "$nudge_file"
+    fi
+fi
+
+# 5b. Session start timestamp for duration bucketing
+date +%s > .claude/.pilot-session-start 2>/dev/null
+
+# 5c. Session counter + self-improvement nudge
 count_file=".claude/.session-count"
 if [ -f "$count_file" ]; then
     session_count=$(cat "$count_file")

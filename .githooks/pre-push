@@ -42,6 +42,23 @@ while read local_ref local_sha remote_ref remote_sha; do
     files=$(git diff --name-only --diff-filter=ACM "$range" 2>/dev/null)
 
     for file in $files; do
+        # PII scan for .pilot/ files
+        if echo "$file" | grep -q '^\.pilot/' && [ "$(basename "$file")" != ".gitkeep" ]; then
+            if [ -x "scripts/pii-scanner.sh" ]; then
+                if echo "$file" | grep -q '\.json$'; then
+                    scripts/pii-scanner.sh "$file" 2>&1
+                elif echo "$file" | grep -q '\.md$' && echo "$file" | grep -q '^\.pilot/feedback/'; then
+                    scripts/pii-scanner.sh --feedback "$file" 2>&1
+                else
+                    scripts/pii-scanner.sh "$file" 2>&1
+                fi
+                if [ $? -eq 1 ]; then
+                    echo "BLOCKED: PII found in $file"
+                    ERRORS=$((ERRORS + 1))
+                fi
+            fi
+        fi
+
         # Block binary artifact extensions
         if echo "$file" | grep -qE "\.($BLOCKED_EXTENSIONS)$"; then
             echo "BLOCKED: $file is a binary artifact. Remove it from the commit."
