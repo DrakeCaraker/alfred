@@ -2,7 +2,7 @@
 
 Alfred is an AI that helps you build things with code — and teaches you how along the way.
 
-You tell it what you do (researcher, analyst, data scientist, developer) and what you're working on. It sets up your project with safety nets that prevent common mistakes, then teaches you good practices one at a time, in language that makes sense for your work.
+You tell it what you do (researcher, analyst, data scientist, developer) and what you're working on. It sets up a new project with safety nets that prevent common mistakes — or audits an existing project and brings it up to code. Either way, it teaches you good practices one at a time, in language that makes sense for your work.
 
 When you've learned something, Alfred stops explaining it and just does it. The more you use it, the more it gets out of your way.
 
@@ -30,7 +30,7 @@ From here, you just work. Alfred handles version control, formatting, and safety
 **You write SQL or scripts, but you're not a software engineer.** Alfred adds the engineering practices you're missing — version control, testing, reproducible environments — without making you learn them upfront. It translates each concept into your domain: "saving a version of your spreadsheet" instead of "committing to a branch."
 → [Quick start](#get-started)
 
-**You're an experienced developer.** Skip the teaching. Alfred gives you pre-configured hooks (auto-format, CI gate, drift detection), 11 slash commands, and a self-improving rule system that promotes recurring corrections into automated guards. Answer 3 questions, start in silent mode.
+**You're an experienced developer.** Skip the teaching. Alfred gives you pre-configured hooks (auto-format, CI gate, drift detection), 11 slash commands, and a self-improving rule system. Point it at a new repo or an existing one — it audits what's there, fills in what's missing, and starts in silent mode. Every correction you make gets captured; repeat it enough and Alfred promotes it into a permanent rule or an automated hook that enforces it without you. Over time, your environment reshapes itself around how you actually work.
 → [System design docs](docs/AI_ASSISTED_DEV_GUIDE.md)
 
 ---
@@ -52,7 +52,7 @@ Alfred runs on [Claude Code](https://docs.anthropic.com/en/docs/claude-code), An
 **If you've never used Claude Code:**
 Follow the [setup guide](docs/GETTING_STARTED.md) — it walks through everything from installation to your first project, step by step.
 
-**If you have Claude Code installed:**
+**Starting a new project:**
 
 ```bash
 git clone https://github.com/DrakeCaraker/alfred.git my-project
@@ -61,7 +61,17 @@ git config core.hooksPath .githooks
 claude
 ```
 
-Then type `/bootstrap` and answer 3 questions. That's it. Start working.
+**Adding Alfred to an existing project:**
+
+```bash
+cd your-existing-project
+git remote add alfred https://github.com/DrakeCaraker/alfred.git
+git fetch alfred main && git merge alfred/main --allow-unrelated-histories
+git config core.hooksPath .githooks
+claude
+```
+
+Then type `/bootstrap` and answer 3 questions. Alfred audits what's already there, fills in what's missing, and sets up guardrails around your existing work. That's it. Start working.
 
 ---
 
@@ -86,12 +96,15 @@ Type `/teach` to learn the next one. Type `/status` to see your progress.
 
 **Explains, then stops.** The first time you run `/commit`, Alfred explains what a save point is using your domain's analogy. The third time, it goes silent. If you ever say "I know" or "skip," it graduates you immediately.
 
-**Learns from corrections.** When you say "no, don't do that," Alfred saves a feedback memory. If the same correction comes up repeatedly, `/self-improve` promotes it to a permanent rule in CLAUDE.md — or even an automated hook that prevents the mistake entirely.
+**Learns from corrections.** When you say "no, don't do that," Alfred saves a feedback memory. If the same correction comes up repeatedly, `/self-improve` promotes it to a permanent rule in CLAUDE.md — or even an automated hook that prevents the mistake entirely. You're not configuring a tool; you're training an environment. Your feedback literally becomes the system.
 
 ```
-Feedback memory  →  CLAUDE.md rule  →  Automated hook
-(soft, one session)  (durable, every session)  (enforced, blocks the action)
+You correct Alfred once  →  It remembers (this session)
+The same thing comes up  →  It becomes a permanent rule (every session)
+You want it enforced     →  It becomes an automated hook (runs by itself)
 ```
+
+The end state: a working environment that was shaped by your own decisions — where good practices are the default and mistakes require effort.
 
 **Resumes across sessions.** When a session ends, Alfred bookmarks what you were working on. Next session, it picks up where you left off.
 
