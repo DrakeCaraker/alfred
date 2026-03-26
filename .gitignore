@@ -54,3 +54,9 @@ vendor/
 
 # Rust
 target/
+
+# Pilot telemetry local-only files
+.claude/.pilot-consent.json
+.claude/.pilot-identity.json
+.claude/.pilot-session-start
+.claude/.pilot-nudge-count

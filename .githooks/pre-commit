@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Pre-commit hook: PII guard and schema validation for .pilot/ files
+# Install: git config core.hooksPath .githooks
+
+SCANNER="scripts/pii-scanner.sh"
+ERRORS=0
+
+# Only check staged .pilot/ files
+staged_pilot=$(git diff --cached --name-only --diff-filter=ACM | grep '^\.pilot/' || true)
+
+if [ -z "$staged_pilot" ]; then
+    exit 0
+fi
+
+if [ ! -x "$SCANNER" ]; then
+    echo "ERROR: PII scanner not found or not executable: $SCANNER"
+    exit 1
+fi
+
+for file in $staged_pilot; do
+    # Skip .gitkeep files
+    if [ "$(basename "$file")" = ".gitkeep" ]; then
+        continue
+    fi
+
+    # Telemetry JSON — validate schema structure
+    if echo "$file" | grep -q '^\.pilot/telemetry/.*\.json$'; then
+        # Validate JSON syntax
+        if ! python3 -m json.tool "$file" > /dev/null 2>&1; then
+            echo "BLOCKED: $file is not valid JSON"
+            ERRORS=$((ERRORS + 1))
+            continue
+        fi
+
+        # Validate required schema fields
+        valid=$(python3 -c "
+import json, sys
+d = json.load(open('$file'))
+required = ['_schema_version', 'anonymous_id', 'persona', 'coding_level', 'sessions']
+missing = [k for k in required if k not in d]
+if missing:
+    print('Missing fields: ' + ', '.join(missing))
+    sys.exit(1)
+print('ok')
+" 2>&1)
+        if [ $? -ne 0 ]; then
+            echo "BLOCKED: $file schema validation failed: $valid"
+            ERRORS=$((ERRORS + 1))
+            continue
+        fi
+
+        # PII scan telemetry files too (belt-and-suspenders)
+        "$SCANNER" "$file" 2>&1
+        if [ $? -eq 1 ]; then
+            ERRORS=$((ERRORS + 1))
+        fi
+    fi
+
+    # Feedback files — full PII scan with feedback mode
+    if echo "$file" | grep -q '^\.pilot/feedback/.*\.md$'; then
+        "$SCANNER" --feedback "$file" 2>&1
+        if [ $? -eq 1 ]; then
+            ERRORS=$((ERRORS + 1))
+        fi
+    fi
+done
+
+if [ "$ERRORS" -gt 0 ]; then
+    echo ""
+    echo "$ERRORS file(s) blocked. Fix PII issues before committing."
+    echo "To override (NOT recommended): git commit --no-verify"
+    exit 1
+fi
+
+exit 0

@@ -60,7 +60,18 @@ for f in \
     .claude/personas/platform-bi.md \
     .claude/personas/general.md \
     docs/AI_ASSISTED_DEV_GUIDE.md \
-    scripts/smoke-test.sh; do
+    scripts/smoke-test.sh \
+    scripts/pii-scanner.sh \
+    scripts/test-pii-scanner.sh \
+    scripts/aggregate-pilot.sh \
+    .claude/hooks/pilot-telemetry.sh \
+    .claude/commands/pilot-consent.md \
+    .claude/commands/pilot-report.md \
+    .claude/commands/pilot-delete.md \
+    .githooks/pre-commit \
+    .pilot/README.md \
+    .pilot/telemetry/.gitkeep \
+    .pilot/feedback/.gitkeep; do
     test -f "$f"; check "$f exists" "$?"
 done
 echo ""
@@ -72,14 +83,14 @@ echo ""
 
 # 3. Shell script syntax
 echo "3. Shell script syntax"
-for sh in .claude/hooks/*.sh .githooks/pre-push; do
+for sh in .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit; do
     bash -n "$sh" 2>/dev/null; check "$sh syntax OK" "$?"
 done
 echo ""
 
 # 4. Shell scripts are executable
 echo "4. Shell scripts executable"
-for sh in .claude/hooks/*.sh .githooks/pre-push; do
+for sh in .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/pii-scanner.sh scripts/test-pii-scanner.sh scripts/aggregate-pilot.sh; do
     test -x "$sh"; check "$sh is executable" "$?"
 done
 echo ""
@@ -138,6 +149,31 @@ if [ "$user_paths" = "0" ]; then
     check "No hardcoded user paths" "0"
 else
     check "No hardcoded user paths ($user_paths files)" "1"
+fi
+echo ""
+
+# 9. Pilot infrastructure
+echo "9. Pilot infrastructure"
+# PII scanner test suite
+if bash scripts/test-pii-scanner.sh > /dev/null 2>&1; then
+    check "PII scanner test suite passes" "0"
+else
+    check "PII scanner test suite passes" "1"
+fi
+# pilot-telemetry.sh registered in settings.json
+pilot_hook=$(python3 -c "
+import json
+d = json.load(open('.claude/settings.json'))
+for group in d.get('hooks', {}).get('Stop', []):
+    for h in group.get('hooks', []):
+        if 'pilot-telemetry' in h.get('command', ''):
+            print('found')
+            break
+" 2>/dev/null)
+if [ "$pilot_hook" = "found" ]; then
+    check "pilot-telemetry.sh registered in Stop hooks" "0"
+else
+    check "pilot-telemetry.sh registered in Stop hooks" "1"
 fi
 echo ""
 
