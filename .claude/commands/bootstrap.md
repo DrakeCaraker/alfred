@@ -49,11 +49,11 @@ Map answers to persona files:
 ### Question 2: Coding comfort
 
 ```
-How comfortable are you with coding and version control?
+How comfortable are you with coding?
 
-1. Beginner — learning to code, mostly notebooks or spreadsheets
-2. Intermediate — write code regularly, basic git usage
-3. Advanced — branches, CI, hooks, automated testing
+1. Beginner — I'm learning. Mostly notebooks, spreadsheets, or copy-pasting code I find online.
+2. Intermediate — I write code regularly and can save my work with git.
+3. Advanced — I use branches, automated testing, and CI/CD pipelines routinely.
 ```
 
 Map to coding_level: 1→"beginner", 2→"intermediate", 3→"advanced"
@@ -64,6 +64,32 @@ Map to code_complexity_level: 1→1, 2→2, 3→3
 ```
 Describe your project in one sentence (this goes in your CLAUDE.md):
 ```
+
+## Step 2b: Foundations primer (beginners only)
+
+If `coding_level == "beginner"`, display this primer immediately after collecting answers and before generating any files. This is the user's first encounter with these concepts — define them in plain language before they appear in hooks, commands, or session output.
+
+```
+Before we set things up, here are 5 concepts you'll see as you work.
+You don't need to memorize these — the system will remind you as they come up.
+
+**Repository (repo)** — A folder that tracks every change you make to your files.
+Think of it like a shared notebook where every edit is recorded with who made it and when.
+
+**Commit** — A snapshot of your work at a specific moment, like pressing "Save" in a
+video game. You can always go back to any previous save.
+
+**Branch** — A separate copy of your project where you can try things without
+affecting the original. Like duplicating a spreadsheet tab to test a formula.
+
+**Main** — The "official" branch. You work on other branches, and only merge into
+main when something is finished and tested.
+
+**Hook** — A small script that runs automatically at certain moments (like when you
+start a session or try to save). It's a safety net — you don't need to run it yourself.
+```
+
+Do NOT show this primer to intermediate or advanced users.
 
 ## Step 3: Read persona
 
@@ -193,14 +219,18 @@ Display a welcome message tailored to the coding level:
 **Beginner**:
 ```
 Alfred is set up! Here's what just happened:
-- Created your CLAUDE.md with [persona] guardrails
-- Set up [N] directories for your project
-- Initialized onboarding tracking (0/8 patterns learned)
 
-The system will explain things as you work. Your first step:
-→ Run /teach to learn your first development pattern
+- Created a file called CLAUDE.md — this tells the AI how to help you
+  (what rules to follow, what to avoid, how your project is organized)
+- Set up [N] folders for your project (like data/, analysis/, results/)
+- Started tracking your learning progress (0/8 skills to learn)
 
-Or just start working — I'll explain things as they come up.
+Everything will be explained as you go. You have two options:
+
+→ Run /teach — a short lesson on the first skill (takes ~2 minutes)
+→ Just start working — tell me what you want to build, and I'll guide you
+
+You can always ask "what does that mean?" if something is unclear.
 ```
 
 **Intermediate**:

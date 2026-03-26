@@ -1,5 +1,29 @@
 # Safe Commit
 
+## Beginner mode
+
+If `coding_level == "beginner"` in `.claude/.onboarding-state.json`, preface the commit workflow with a brief explanation:
+
+```
+Committing saves a snapshot of your work — like pressing "Save" in a game.
+You can always come back to this exact point if something goes wrong later.
+
+I'll check your files for safety first, then save everything with a short
+description of what changed.
+```
+
+After the commit succeeds, explain the output:
+```
+Your work is saved! Here's what just happened:
+- [commit hash] is a unique ID for this save point (like a receipt number)
+- The message "[commit message]" describes what changed
+- You can see your last 3 saves above
+
+You're doing great. Keep working — run /commit again whenever you want to save.
+```
+
+## Safety checks
+
 Before committing, run these safety checks:
 
 1. Run `git status` to see staged and unstaged changes

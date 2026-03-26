@@ -17,6 +17,30 @@ Show onboarding progress, graduated patterns, and contextual next steps.
 
 3. Display the status dashboard:
 
+**For beginners** (`coding_level == "beginner"`), use this format with plain-language descriptions:
+
+```
+Alfred Status — [Persona Name]
+
+Skills learned: [N] of 8
+
+  # | Skill                    | What it does                                         | Status
+----|--------------------------|------------------------------------------------------|------------------
+  1 | Context before action    | Check where you are before starting                  | ✓ learned
+  2 | Scope before work        | Plan what you're doing before you start coding        | ○ seen 2x
+  3 | Save points              | Save your work frequently so you never lose progress  | · not started
+  4 | Safe experimentation     | Try things without risking your working code          | · not started
+  5 | One change, one test     | Change one thing at a time and check it works         | · not started
+  6 | Automated recovery       | Let the system fix formatting and small errors for you| · not started
+  7 | Provenance               | Track which code produced which result                | · not started
+  8 | Self-improvement         | The system learns from your corrections over time     | · not started
+
+Next: Run /teach to learn "Scope before work" — takes about 2 minutes.
+You can also just start working and learn as you go!
+```
+
+**For intermediate and advanced**, use the standard format:
+
 ```
 Alfred Status — [Persona Name] ([coding_level])
 Bootstrapped: [date] | Sessions: [count] | Code Level: [code_complexity_level]
