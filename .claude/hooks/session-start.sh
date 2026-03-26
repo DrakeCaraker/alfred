@@ -76,6 +76,22 @@ elif [ "$session_count" -ge 10 ]; then
     echo "Improvement: $session_count sessions since last /self-improve. Consider running /self-improve to check for new improvements." >&2
 fi
 
+# 6.5. GitHub connection check
+gh_user=$(gh auth status 2>&1 | grep -oP '(?<=Logged in to github.com account )\S+' | tr -d '()')
+if [ -n "$gh_user" ]; then
+    remote_url=$(git remote get-url origin 2>/dev/null)
+    if [ -n "$remote_url" ]; then
+        echo "" >&2
+        echo "GitHub: $gh_user | repo: $remote_url" >&2
+    else
+        echo "" >&2
+        echo "GitHub: $gh_user | no remote — run /github-account-setup to create a repo" >&2
+    fi
+else
+    echo "" >&2
+    echo "GitHub: not connected — run /github-account-setup to set up" >&2
+fi
+
 # 7. Onboarding status
 state_file=".claude/.onboarding-state.json"
 if [ -f "$state_file" ]; then
