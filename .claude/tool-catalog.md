@@ -7,6 +7,7 @@ Reference mapping between slash commands, patterns, hooks, and state files.
 | Command | Pattern Taught | Description |
 |---------|---------------|-------------|
 | /bootstrap | — | Persona-aware project setup |
+| /github-account-setup | — | GitHub account check, auth, and repo creation |
 | /teach | All 8 | Progressive pattern lessons |
 | /status | — | Onboarding progress dashboard |
 | /commit | #3 Save points | Safe commit with file guards |
