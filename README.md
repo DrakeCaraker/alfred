@@ -2,20 +2,57 @@
 
 Alfred sets up Claude Code for your project. You answer two questions — what you do and how much you code — and it generates a tailored environment with guardrails, automation, and progressive teaching that adapts to you.
 
-**Prerequisites:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed (`npm install -g @anthropic-ai/claude-code`) with an Anthropic API key or Claude Max/Team subscription. See the [setup guide](https://docs.anthropic.com/en/docs/claude-code/getting-started) for platform-specific instructions.
+## Setup
+
+### 1. Install Claude Code
+
+Alfred runs inside [Claude Code](https://docs.anthropic.com/en/docs/claude-code), an AI assistant you interact with by typing messages. Claude Code requires a paid subscription — either [Claude Max/Team](https://claude.ai) or an [Anthropic API key](https://console.anthropic.com).
+
+Install the CLI (requires [Node.js](https://nodejs.org)):
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+Other options (desktop app, web) are available — see the [setup guide](https://docs.anthropic.com/en/docs/claude-code/getting-started).
+
+### 2. Get Alfred
 
 ```bash
 git clone https://github.com/DrakeCaraker/alfred.git my-project
-cd my-project && claude
+cd my-project
+git config core.hooksPath .githooks
 ```
 
-```
-> /bootstrap
+This downloads Alfred into a `my-project` folder and activates its safety checks.
 
+> **No git?** Click the green "Code" button on GitHub → "Download ZIP", unzip it, and open a terminal in that folder. Alfred will set up git for you during bootstrap.
+
+### 3. Run /bootstrap
+
+Start Claude Code:
+
+```bash
+claude
+```
+
+You'll see a status summary — this is normal. Alfred is telling you it hasn't been set up yet. At the Claude Code prompt, type:
+
+```
+/bootstrap
+```
+
+Alfred asks three questions:
+
+```
 What best describes your work?  1
 How comfortable are you with coding?  2
 Describe your project:  quarterly revenue forecasting model
+```
 
+It may also offer to connect your GitHub account — you can skip this and do it later with `/github-account-setup`.
+
+```
 Done. CLAUDE.md generated, guardrails active, 0/8 patterns learned.
 Start working — I'll explain things as they come up.
 ```
