@@ -4,6 +4,8 @@ Alfred sets up Claude Code for your project. You answer two questions — what y
 
 ## Setup
 
+> **New to the command line?** Follow the [step-by-step beginner guide](docs/GETTING_STARTED.md) instead.
+
 ### 1. Install Claude Code
 
 Alfred runs inside [Claude Code](https://docs.anthropic.com/en/docs/claude-code), an AI assistant you interact with by typing messages. Claude Code requires a paid subscription — either [Claude Max/Team](https://claude.ai) or an [Anthropic API key](https://console.anthropic.com).
