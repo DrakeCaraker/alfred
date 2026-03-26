@@ -67,7 +67,7 @@ $ cd my-project
 $ git config core.hooksPath .githooks
 ```
 
-`cd` means "change directory" — it moves you into the folder you just downloaded.
+`cd` means "change directory" — it moves you into the folder you just downloaded. The last command activates Alfred's safety checks — they block accidental pushes to the main version of your project and prevent large binary files from being saved.
 
 **If you don't have git** (common on Windows):
 
@@ -80,6 +80,8 @@ $ git config core.hooksPath .githooks
    ```
 
 > **Tip**: On Mac, type `cd ` (with a space) then drag the folder from Finder into the terminal window. On Windows, right-click the folder in Explorer and choose "Open in Terminal."
+
+> **What the safety checks do**: Alfred runs several things automatically in the background — formatting your code after every edit, showing project status when you start a session, saving your place when a session ends, and preserving context when conversations get long. You don't need to set these up; they activate when you run `/bootstrap`.
 
 ## Step 5: Start Claude Code
 

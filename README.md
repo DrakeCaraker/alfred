@@ -1,71 +1,43 @@
 # Alfred
 
-Alfred sets up Claude Code for your project. You answer two questions — what you do and how much you code — and it generates a tailored environment with guardrails, automation, and progressive teaching that adapts to you.
+Alfred is an AI that helps you build things with code — and teaches you how along the way.
 
-## Setup
+You tell it what you do (researcher, analyst, data scientist, developer) and what you're working on. It sets up your project with safety nets that prevent common mistakes, then teaches you good practices one at a time, in language that makes sense for your work.
 
-> **New to the command line?** Follow the [step-by-step beginner guide](docs/GETTING_STARTED.md) instead.
+When you've learned something, Alfred stops explaining it and just does it. The more you use it, the more it gets out of your way.
 
-### 1. Install Claude Code
+## What it looks like
 
-Alfred runs inside [Claude Code](https://docs.anthropic.com/en/docs/claude-code), an AI assistant you interact with by typing messages. Claude Code requires a paid subscription — either [Claude Max/Team](https://claude.ai) or an [Anthropic API key](https://console.anthropic.com).
+You open Alfred and describe your project:
 
-Install the CLI (requires [Node.js](https://nodejs.org)):
+> **You:** I'm building a quarterly revenue report that pulls from our Snowflake database
+>
+> **Alfred:** Got it. I've set up your project with:
+> - A `queries/` folder for your SQL
+> - A `reports/` folder for output
+> - Safety checks that prevent you from accidentally overwriting results
+> - Automatic formatting so your code stays clean
+>
+> I'll explain things as we go. Ready to start on the revenue query?
 
-```bash
-npm install -g @anthropic-ai/claude-code
-```
+From here, you just work. Alfred handles version control, formatting, and safety checks in the background. When you encounter something new — like needing to try two different approaches without losing your current work — Alfred explains the concept using an analogy from your field, then sets it up for you.
 
-Other options (desktop app, web) are available — see the [setup guide](https://docs.anthropic.com/en/docs/claude-code/getting-started).
+## Who it's for
 
-### 2. Get Alfred
+**You're new to coding.** Alfred builds things for you. You describe what you want in plain language, and Alfred writes the code, runs it, and explains what it did. Over time, you learn to direct it more precisely — and eventually to build independently.
+→ [Start here: First-time setup guide](docs/GETTING_STARTED.md)
 
-```bash
-git clone https://github.com/DrakeCaraker/alfred.git my-project
-cd my-project
-git config core.hooksPath .githooks
-```
+**You write SQL or scripts, but you're not a software engineer.** Alfred adds the engineering practices you're missing — version control, testing, reproducible environments — without making you learn them upfront. It translates each concept into your domain: "saving a version of your spreadsheet" instead of "committing to a branch."
+→ [Quick start](#get-started)
 
-This downloads Alfred into a `my-project` folder and activates its safety checks.
-
-> **No git?** Click the green "Code" button on GitHub → "Download ZIP", unzip it, and open a terminal in that folder. Alfred will set up git for you during bootstrap.
-
-### 3. Run /bootstrap
-
-Start Claude Code:
-
-```bash
-claude
-```
-
-You'll see a status summary — this is normal. Alfred is telling you it hasn't been set up yet. At the Claude Code prompt, type:
-
-```
-/bootstrap
-```
-
-Alfred asks three questions:
-
-```
-What best describes your work?  1
-How comfortable are you with coding?  2
-Describe your project:  quarterly revenue forecasting model
-```
-
-It may also offer to connect your GitHub account — you can skip this and do it later with `/github-account-setup`.
-
-```
-Done. CLAUDE.md generated, guardrails active, 0/8 patterns learned.
-Start working — I'll explain things as they come up.
-```
-
-That's it. Start working.
+**You're an experienced developer.** Skip the teaching. Alfred gives you pre-configured hooks (auto-format, CI gate, drift detection), 11 slash commands, and a self-improving rule system that promotes recurring corrections into automated guards. Answer 3 questions, start in silent mode.
+→ [System design docs](docs/AI_ASSISTED_DEV_GUIDE.md)
 
 ---
 
 ## Why
 
-Most people fail at AI-assisted development not because the AI is bad, but because the surrounding habits aren't there — scoping work before starting, committing frequently, isolating experiments on branches, tracing results to source code. These habits are simple but easy to skip, and skipping them is how you end up with half-finished work on main, lost changes, and results nobody can reproduce.
+Most people fail at building things with AI not because the AI is bad, but because the surrounding habits aren't there — scoping work before starting, committing frequently, isolating experiments on branches, tracing results to source code. These habits are simple but easy to skip, and skipping them is how you end up with half-finished work on main, lost changes, and results nobody can reproduce.
 
 Alfred teaches these habits using language you already understand. An ML scientist hears "think of commits as experiment checkpoints." A business analyst hears "saving a version of the spreadsheet." A researcher hears "signing a lab notebook page." Same concept, different framing — because the framing is what makes it stick.
 
@@ -75,58 +47,38 @@ Then it shuts up. Once you've seen a concept three times without asking "why?", 
 
 ## Get started
 
-After `/bootstrap`, three commands cover most of what you need:
+Alfred runs on [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Anthropic's AI coding tool.
 
-| Command | When to use it |
-|---------|---------------|
-| `/new-work` | Starting a task — creates a branch, scopes the work |
-| `/commit` | Saving progress — checks for dangerous files first |
-| `/teach` | Curious about a pattern — delivers a lesson in your domain's language |
+**If you've never used Claude Code:**
+Follow the [setup guide](docs/GETTING_STARTED.md) — it walks through everything from installation to your first project, step by step.
 
-Everything else is available but not required upfront:
+**If you have Claude Code installed:**
 
-<details>
-<summary>All commands</summary>
+```bash
+git clone https://github.com/DrakeCaraker/alfred.git my-project
+cd my-project
+git config core.hooksPath .githooks
+claude
+```
 
-| Command | What it does |
-|---------|-------------|
-| `/bootstrap` | Picks your persona, generates CLAUDE.md, initializes tracking |
-| `/teach` | Next pattern lesson — or `/teach all` for progress, `/teach <name>` to revisit |
-| `/status` | Graduated patterns, level, next steps |
-| `/commit` | Safe commit — blocks binaries, warns on large files |
-| `/new-work` | Scoped branch with task list |
-| `/ci-fix` | Auto-fix loop: lint, format, typecheck, test until green |
-| `/self-improve` | Promote recurring corrections to permanent rules |
-| `/health-check` | Project maturity assessment (5 levels) |
-| `/safe-refactor` | One change at a time, auto-rollback on test failure |
-| `/experiment-summary` | Inventory results with provenance |
-| `/pr` | Push and open a pull request |
-
-</details>
+Then type `/bootstrap` and answer 3 questions. That's it. Start working.
 
 ---
 
 ## What it teaches
 
-Alfred teaches 8 patterns — the habits that make AI-assisted development work. They're taught in order, one at a time, as you encounter the situations where they matter.
+Alfred teaches 8 habits, one at a time, when you need them:
 
-**1. Context before action** — Check where you are before you start. The session-start hook does this automatically.
+1. **Check before you start** — See what's changed since last time before diving in
+2. **Name your work** — Define what you're doing before you start, so you don't lose track
+3. **Save as you go** — Create restore points so you can always undo mistakes
+4. **Try things safely** — Experiment without risking your working code
+5. **Change one thing at a time** — Make small changes and verify each one
+6. **Let the machine fix typos** — Formatting and syntax errors get fixed automatically
+7. **Track where results come from** — Every output traces back to what produced it
+8. **Teach the system your preferences** — Corrections become permanent rules over time
 
-**2. Scope before work** — Name what you're doing and create a branch before writing code. `/new-work`
-
-**3. Save points** — Commit frequently. `/commit` adds safety checks.
-
-**4. Safe experimentation** — Use branches to try things. If it works, merge. If not, delete.
-
-**5. One change, one test** — Change one thing, test, commit or rollback. `/safe-refactor`
-
-**6. Automated recovery** — Let the machine fix lint and format errors. `/ci-fix`
-
-**7. Provenance** — Every result traces to the code that produced it. `/experiment-summary`
-
-**8. Self-improvement** — The system learns from your corrections. `/self-improve`
-
-Run `/teach` to learn the next one. Run `/status` to see which you've graduated.
+Type `/teach` to learn the next one. Type `/status` to see your progress.
 
 ---
 
@@ -159,22 +111,6 @@ Your answer to "what best describes your work?" selects a persona. Each one prov
 | 6 | **General** | Never commit .env files; run tests before pushing |
 
 Each persona translates the same 8 patterns into different language. "Safe experimentation" becomes "hyperparameter sweep in isolation" for ML, "pilot study" for research, and "copy of the report" for business analytics.
-
----
-
-## Setup notes
-
-Activate the pre-push hook after cloning (blocks binaries and direct pushes to main):
-
-```bash
-git config core.hooksPath .githooks
-```
-
-Alfred also installs these hooks via `.claude/settings.json`:
-- **Format on write** — auto-formats Python, JS/TS, Go, Rust, R, SQL after every edit
-- **Session start** — git status, branch safety, onboarding progress, session resume
-- **Session end** — bookmarks your task context and captures feedback
-- **Pre-compact** — preserves critical context before conversation compression
 
 ---
 

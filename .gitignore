@@ -59,3 +59,4 @@ target/
 .claude/.session-count
 .claude/.onboarding-state.json
 .claude/.session-bookmark.json
+.claude/.pilot-session-start
