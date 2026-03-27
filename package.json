@@ -1,0 +1,11 @@
+{
+  "name": "alfred",
+  "version": "0.1.0",
+  "description": "AI-assisted development system with progressive onboarding and feedback-driven learning",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DrakeCaraker/alfred.git"
+  }
+}

@@ -1,0 +1,20 @@
+# Default persona — used when no persona has evolved yet
+# Fields are populated during /bootstrap and evolve through /self-improve
+
+name: ""
+domain:
+  primary: ""
+  secondary: []
+explain:
+  level: intermediate
+  known_concepts: []
+behavior:
+  autonomy: suggest-then-do
+  commit_style: conventional
+patterns:
+  preferred_tools: []
+  avoided_tools: []
+  custom_rules: []
+evolution:
+  correction_count: 0
+  last_evolved: null

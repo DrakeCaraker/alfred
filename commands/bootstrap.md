@@ -18,23 +18,6 @@ If CLAUDE.md already exists and contains more than the placeholder text ("Run `/
 
 If not a git repo, initialize: `git init`
 
-## Step 1.5: GitHub Account Setup
-
-Run the GitHub account setup check. This ensures the user has a GitHub account, is authenticated, and optionally has a repository — before we ask project questions.
-
-Execute the full flow from `.claude/commands/github-account-setup.md`:
-
-1. Explain what GitHub is and why they need it (in plain language)
-2. Check if `gh` CLI is installed — guide installation if not
-3. Check if already authenticated (`gh auth status`) — skip ahead if yes
-4. If not authenticated, ask whether they have an account:
-   - **Yes/Not sure**: Run `gh auth login --web -p https` and walk them through it
-   - **No**: Guide them to https://github.com/signup with detailed instructions, then authenticate
-5. Verify authentication succeeded
-6. Note: Repository creation is deferred to Step 7.5 (after we know the project name)
-
-**If GitHub setup fails or user declines**, do NOT block bootstrap. Set `github.skipped: true` in onboarding state and continue. The user can run `/github-account-setup` later.
-
 ## Step 2: Ask questions
 
 Ask these questions one at a time, waiting for each answer before proceeding.
@@ -66,11 +49,11 @@ Map answers to persona files:
 ### Question 2: Coding comfort
 
 ```
-How comfortable are you with coding?
+How comfortable are you with coding and version control?
 
-1. Beginner — I'm learning. Mostly notebooks, spreadsheets, or copy-pasting code I find online.
-2. Intermediate — I write code regularly and can save my work with git.
-3. Advanced — I use branches, automated testing, and CI/CD pipelines routinely.
+1. Beginner — learning to code, mostly notebooks or spreadsheets
+2. Intermediate — write code regularly, basic git usage
+3. Advanced — branches, CI, hooks, automated testing
 ```
 
 Map to coding_level: 1→"beginner", 2→"intermediate", 3→"advanced"
@@ -81,32 +64,6 @@ Map to code_complexity_level: 1→1, 2→2, 3→3
 ```
 Describe your project in one sentence (this goes in your CLAUDE.md):
 ```
-
-## Step 2b: Foundations primer (beginners only)
-
-If `coding_level == "beginner"`, display this primer immediately after collecting answers and before generating any files. This is the user's first encounter with these concepts — define them in plain language before they appear in hooks, commands, or session output.
-
-```
-Before we set things up, here are 5 concepts you'll see as you work.
-You don't need to memorize these — the system will remind you as they come up.
-
-**Repository (repo)** — A folder that tracks every change you make to your files.
-Think of it like a shared notebook where every edit is recorded with who made it and when.
-
-**Commit** — A snapshot of your work at a specific moment, like pressing "Save" in a
-video game. You can always go back to any previous save.
-
-**Branch** — A separate copy of your project where you can try things without
-affecting the original. Like duplicating a spreadsheet tab to test a formula.
-
-**Main** — The "official" branch. You work on other branches, and only merge into
-main when something is finished and tested.
-
-**Hook** — A small script that runs automatically at certain moments (like when you
-start a session or try to save). It's a safety net — you don't need to run it yourself.
-```
-
-Do NOT show this primer to intermediate or advanced users.
 
 ## Step 3: Read persona
 
@@ -159,7 +116,6 @@ Write a new CLAUDE.md file with this structure. Adapt content from the persona f
 | Command | Purpose |
 |---------|---------|
 | /bootstrap | Persona-aware project setup (you just ran this) |
-| /github-account-setup | Connect to GitHub or create an account |
 | /teach | Learn the next development pattern |
 | /status | See your progress and graduated patterns |
 | /commit | Safe commit with file guards |
@@ -274,24 +230,6 @@ List the directories you created so the user can see what was set up.
 
 Do NOT overwrite existing `.gitignore` entries — only append missing patterns.
 
-## Step 8.5: Create GitHub Repository (if authenticated)
-
-If GitHub was set up in Step 1.5 (user is authenticated), now create a repository using the project name from Q3.
-
-Follow Steps 6-7 from `.claude/commands/github-account-setup.md`:
-
-1. Check if a remote already exists (`git remote -v`) — skip if yes
-2. Ask if they want a repository created (explain what it is in plain language)
-3. Use the project directory name as the default repo name
-4. Default to **private** — ask for confirmation before making public
-5. Create with: `gh repo create [name] --private --source=. --push`
-6. Update onboarding state with `github.repo_url`
-
-If GitHub was skipped in Step 1.5, remind the user:
-```
-Note: Your project is saved locally. To back it up online later, run /github-account-setup
-```
-
 ## Step 9: Welcome message
 
 Display a welcome message tailored to the coding level:
@@ -299,18 +237,14 @@ Display a welcome message tailored to the coding level:
 **Beginner**:
 ```
 Alfred is set up! Here's what just happened:
+- Created your CLAUDE.md with [persona] guardrails
+- Set up [N] directories for your project
+- Initialized onboarding tracking (0/8 patterns learned)
 
-- Created a file called CLAUDE.md — this tells the AI how to help you
-  (what rules to follow, what to avoid, how your project is organized)
-- Set up [N] folders for your project (like data/, analysis/, results/)
-- Started tracking your learning progress (0/8 skills to learn)
+The system will explain things as you work. Your first step:
+→ Run /teach to learn your first development pattern
 
-Everything will be explained as you go. You have two options:
-
-→ Run /teach — a short lesson on the first skill (takes ~2 minutes)
-→ Just start working — tell me what you want to build, and I'll guide you
-
-You can always ask "what does that mean?" if something is unclear.
+Or just start working — I'll explain things as they come up.
 ```
 
 **Intermediate**:
