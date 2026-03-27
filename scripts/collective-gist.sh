@@ -81,13 +81,13 @@ cmd_init() {
   # Create with empty signals array
   local empty_signals
   empty_signals='{"schema_version":"1.0","signals":[],"last_updated":"'"$(date +%Y-%m-%d)"'"}'
-  local tmp_file
-  tmp_file=$(mktemp)
-  echo "$empty_signals" > "$tmp_file"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  echo "$empty_signals" > "$tmp_dir/$GIST_FILENAME"
 
   local gist_url
-  gist_url=$(gh gist create "$tmp_file" --filename "$GIST_FILENAME" --desc "Alfred Collective Learning Signals" 2>&1)
-  rm -f "$tmp_file"
+  gist_url=$(gh gist create "$tmp_dir/$GIST_FILENAME" --desc "Alfred Collective Learning Signals" 2>&1)
+  rm -rf "$tmp_dir"
 
   # Extract Gist ID from URL
   local gist_id
@@ -125,71 +125,64 @@ cmd_contribute() {
 
   echo "Reading current collective signals..."
 
-  # Fetch current Gist content
-  local current_json
-  current_json=$(gh gist view "$gist_id" --filename "$GIST_FILENAME" 2>/dev/null || echo '{"signals":[]}')
+  # Fetch current Gist content to a temp file (avoids heredoc quoting issues)
+  local current_file
+  current_file=$(mktemp)
+  gh gist view "$gist_id" --filename "$GIST_FILENAME" > "$current_file" 2>/dev/null || echo '{"signals":[]}' > "$current_file"
 
   # Merge signals using Python (handles deduplication)
-  local merged
-  merged=$(python3 -c "
+  local merged_file
+  merged_file=$(mktemp)
+  local today
+  today=$(date +%Y-%m-%d)
+
+  local stats
+  stats=$(python3 -c "
 import json, sys, hashlib
 
 def signal_id(s):
     key = s.get('category','') + ':' + s.get('pattern','')[:100].lower()
     return hashlib.sha256(key.encode()).hexdigest()[:16]
 
-# Read current
-current = json.loads('''$current_json''')
+with open('$current_file') as f:
+    current = json.load(f)
 existing = {signal_id(s): s for s in current.get('signals', [])}
 
-# Read new
 with open('$signals_file') as f:
     new_data = json.load(f)
 
-# Merge
 added = 0
 updated = 0
 for s in new_data.get('signals', []):
     sid = signal_id(s)
     if sid in existing:
         existing[sid]['global_occurrences'] = existing[sid].get('global_occurrences', 1) + s.get('local_occurrences', 1)
-        # Promote to highest level seen
         levels = {'memory': 0, 'rule': 1, 'hook': 2}
         if levels.get(s.get('promoted_to',''), 0) > levels.get(existing[sid].get('promoted_to',''), 0):
             existing[sid]['promoted_to'] = s['promoted_to']
         updated += 1
     else:
         s['global_occurrences'] = s.get('local_occurrences', 1)
-        s['contributed_at'] = '$(date +%Y-%m-%d)'
+        s['contributed_at'] = '$today'
         existing[sid] = s
         added += 1
 
 output = {
     'schema_version': '1.0',
-    'last_updated': '$(date +%Y-%m-%d)',
+    'last_updated': '$today',
     'signals': list(existing.values()),
 }
-print(json.dumps(output, indent=2))
-sys.stderr.write(f'{added} new, {updated} updated\n')
-" 2>&1)
-
-  local stats
-  stats=$(echo "$merged" | tail -1)
-  local json_content
-  json_content=$(echo "$merged" | head -n -1)
+with open('$merged_file', 'w') as f:
+    json.dump(output, f, indent=2)
+print(f'{added} new, {updated} updated, {len(existing)} total')
+")
+  rm -f "$current_file"
 
   # Write merged content back to Gist
-  local tmp_file
-  tmp_file=$(mktemp)
-  echo "$json_content" > "$tmp_file"
-  gh gist edit "$gist_id" --filename "$GIST_FILENAME" "$tmp_file" >/dev/null 2>&1
-  rm -f "$tmp_file"
-
-  local total
-  total=$(echo "$json_content" | python3 -c "import json,sys; print(len(json.load(sys.stdin).get('signals',[])))" 2>/dev/null || echo "?")
+  gh gist edit "$gist_id" --filename "$GIST_FILENAME" "$merged_file" >/dev/null 2>&1
+  rm -f "$merged_file"
 
   echo "Contributed to collective: $stats"
-  echo "Total signals in collective: $total"
   echo ""
   echo "Signals are anonymized. No file paths, code, or identifiers were shared."
 }
@@ -216,10 +209,10 @@ cmd_ingest() {
   fi
 
   # Filter and display using Python
-  python3 -c "
+  echo "$content" | python3 -c "
 import json, sys
 
-data = json.loads('''$content''')
+data = json.load(sys.stdin)
 signals = data.get('signals', [])
 
 if not signals:
@@ -288,9 +281,9 @@ cmd_status() {
   local content
   content=$(gh gist view "$gist_id" --filename "$GIST_FILENAME" 2>/dev/null || echo '{"signals":[]}')
 
-  python3 -c "
-import json
-data = json.loads('''$content''')
+  echo "$content" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
 signals = data.get('signals', [])
 updated = data.get('last_updated', 'unknown')
 strong = sum(1 for s in signals if s.get('global_occurrences', 1) >= 3)
