@@ -1,4 +1,4 @@
-.PHONY: setup test lint check
+.PHONY: setup test lint validate fix check
 
 ## setup: Activate git hooks and verify prerequisites
 setup:
@@ -24,7 +24,22 @@ lint:
 		exit 1; \
 	fi
 
-## check: Run all validations (lint + test)
-check: lint test
+## validate: Run all CI-equivalent structural checks (JSON, YAML, conflict markers, sync, shell syntax)
+validate:
+	@bash scripts/validate.sh
+
+## fix: Auto-fix deterministic issues (sync commands, permissions)
+fix:
+	@for f in .claude/commands/*.md; do \
+		base=$$(basename "$$f"); \
+		if [ -f "commands/$$base" ]; then \
+			cp "$$f" "commands/$$base"; \
+		fi; \
+	done
+	@chmod +x .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh 2>/dev/null || true
+	@echo "Fixed: command sync + permissions"
+
+## check: Run all validations (validate + lint + test)
+check: validate lint test
 	@echo ""
 	@echo "All checks passed."
