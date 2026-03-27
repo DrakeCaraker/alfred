@@ -92,6 +92,32 @@ If more than 3 changes are identified, list the remainder in a "Deferred improve
 4. Run verification: Run the project's lint and typecheck commands (detect from Makefile, package.json, or pyproject.toml — same detection as /ci-fix Step 0)
 5. Reset session counter: `echo 0 > .claude/.session-count`
 
+### Step 5b: Persona Evolution
+
+After executing approved changes, evolve the user's persona. Use the `alfred:persona-evolve` skill:
+
+1. Check if `.claude/alfred-persona.yaml` exists
+   - If not, create it using the same defaults as `/persona init`
+   - Read `.claude/.onboarding-state.json` for persona and coding_level
+   - Read `.claude/alfred.yaml` for project type and formatting tool
+
+2. Scan feedback memories for persona evolution triggers:
+   - **Concept learning**: memories containing "I know", "don't explain", "already understand" → add to `explain.known_concepts`
+   - **Tool preferences**: memories containing "use X not Y", "prefer X", "don't use Y" → update `patterns.preferred_tools` and `patterns.avoided_tools`
+   - **Custom rules**: any feedback memory promoted to a CLAUDE.md rule in Step 5 → add to `patterns.custom_rules`
+
+3. Auto-apply low-risk changes (concepts, tools, custom rules) silently
+
+4. Check autonomy signal: count approvals vs rejections in the feedback memories
+   - If 18+ approvals out of 20 → suggest nudging autonomy up (ask user)
+   - If 5+ rejections out of 20 → suggest nudging autonomy down (ask user)
+
+5. If `patterns.custom_rules` has 5+ entries and `name` is empty → suggest a persona name based on rule themes (ask user)
+
+6. Update `evolution.correction_count` (total feedback memories processed) and `evolution.last_evolved` to today's date
+
+7. Report persona changes made (if any)
+
 ### Step 6: Report
 
 Show the user:

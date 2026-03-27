@@ -60,3 +60,6 @@ target/
 .claude/.pilot-identity.json
 .claude/.pilot-session-start
 .claude/.pilot-nudge-count
+
+# Persona state (local per-user)
+.claude/alfred-persona.yaml
