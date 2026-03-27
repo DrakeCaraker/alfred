@@ -212,6 +212,55 @@ else
 fi
 echo ""
 
+# 11. Conflict marker check
+echo "11. Conflict marker check"
+# Build pattern from parts so this file doesn't match itself
+marker="<""<""<""<""<""<""< "
+conflict_files=$(grep -rl "$marker" --include="*.md" --include="*.sh" --include="*.json" --include="*.yaml" --include="*.yml" . 2>/dev/null | grep -v ".git/" | grep -v "node_modules/")
+if [ -z "$conflict_files" ]; then
+    check "No merge conflict markers in tracked files" "0"
+else
+    check "No merge conflict markers in tracked files" "1"
+    for cf in $conflict_files; do
+        echo "    CONFLICT: $cf"
+    done
+fi
+echo ""
+
+# 12. Command copy sync
+echo "12. Command copy sync"
+sync_ok=true
+for f in .claude/commands/*.md; do
+    base=$(basename "$f")
+    if [ -f "commands/$base" ]; then
+        if ! diff -q "$f" "commands/$base" > /dev/null 2>&1; then
+            check "commands/$base matches .claude/commands/$base" "1"
+            sync_ok=false
+        fi
+    fi
+done
+if [ "$sync_ok" = true ]; then
+    check "All command copies in sync" "0"
+fi
+echo ""
+
+# 13. YAML validity (requires PyYAML — skip with warning if not installed)
+echo "13. YAML validity"
+if python3 -c "import yaml" 2>/dev/null; then
+    for yf in personas/_schema.yaml personas/_default.yaml alfred.schema.yaml collective/signal_schema.yaml collective/role-categories.yaml; do
+        if [ -f "$yf" ]; then
+            if python3 -c "import yaml; yaml.safe_load(open('$yf'))" 2>/dev/null; then
+                check "$yf is valid YAML" "0"
+            else
+                check "$yf is valid YAML" "1"
+            fi
+        fi
+    done
+else
+    warn "PyYAML not installed — skipping YAML validation (pip install pyyaml)"
+fi
+echo ""
+
 # Summary
 echo "=================="
 echo "Results: $PASS passed, $FAIL failed, $WARN warnings"
