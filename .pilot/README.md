@@ -25,6 +25,9 @@ This directory contains **anonymized, opt-in** usage telemetry from Alfred pilot
 | graduated_this_session | string[] | pattern names |
 | feedback_memory_count | int | `1` |
 | bookmark_saved | bool | `true` |
+| used_custom_role | bool | `false` |
+| persona_fit | bool/null | `true` |
+| custom_role_category | enum/null | `"devops-sre"` |
 
 ## What's Never Collected
 
@@ -35,6 +38,8 @@ This directory contains **anonymized, opt-in** usage telemetry from Alfred pilot
 - IP addresses, hostnames
 - Health data (patient info, diagnoses, prescriptions)
 - Database queries, credentials
+- Free-text role descriptions (custom_role_description)
+- Free-text persona gap descriptions (persona_gap)
 
 ## Your Data Rights
 
@@ -46,7 +51,11 @@ This directory contains **anonymized, opt-in** usage telemetry from Alfred pilot
 
 ## Schema Version
 
-Current: `1.0`
+Current: `1.1`
+
+Changes in 1.1:
+- Added `used_custom_role` (bool), `persona_fit` (bool/null), `custom_role_category` (enum/null)
+- Categories are from `collective/role-categories.yaml` — a fixed taxonomy, not free text
 
 ## Guard Layers
 

@@ -100,6 +100,20 @@ if [ -f ".claude/.onboarding-state.json" ] && [ ! -f ".claude/.pilot-consent.jso
     fi
 fi
 
+# 5a.5. Persona fit nudge (one-time, at session 3+)
+if [ -f ".claude/.onboarding-state.json" ] && [ ! -f ".claude/.persona-fit-nudged" ]; then
+    fit_checked=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('persona_fit_checked', False))" 2>/dev/null)
+    if [ "$fit_checked" != "True" ] && [ "$session_count" -ge 3 ] 2>/dev/null; then
+        echo "" >&2
+        if [ "$coding_level" = "beginner" ]; then
+            echo "Quick check: Is Alfred using the right kind of examples for your work? Run /persona check" >&2
+        else
+            echo "Tip: Run /persona check to see if your current persona fits your work" >&2
+        fi
+        touch ".claude/.persona-fit-nudged"
+    fi
+fi
+
 # 5b. Session start timestamp for duration bucketing
 date +%s > .claude/.pilot-session-start 2>/dev/null
 

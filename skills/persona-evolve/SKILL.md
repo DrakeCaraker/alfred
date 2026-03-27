@@ -38,6 +38,12 @@ Analyzes feedback memories and usage patterns to suggest persona adjustments. Ru
 **Action**: Add the rule text to `patterns.custom_rules`
 **Auto-apply**: Yes (already user-approved during self-improve)
 
+### Persona Fit Detection
+**Trigger**: 5+ corrections that overlap with a DIFFERENT persona's guardrails (across 3+ sessions)
+**Action**: Note in persona YAML: `evolution.fit_signal: "platform-bi"` (the better-fitting persona)
+**Auto-apply**: Yes (silent note only — does NOT switch personas or alert user)
+**Purpose**: Pre-computes fit data so `/persona suggest` can give instant results instead of re-scanning all memories
+
 ### Persona Naming (Emergence)
 **Trigger**: 5+ entries in `patterns.custom_rules`
 **Action**: Analyze the custom rules, preferred/avoided tools, and domain to suggest a persona name
