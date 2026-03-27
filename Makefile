@@ -17,7 +17,7 @@ test:
 lint:
 	@if command -v shellcheck >/dev/null 2>&1; then \
 		echo "Running shellcheck..."; \
-		shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh 2>&1; \
+		shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh scripts/validate.sh scripts/collective-gist.sh 2>&1; \
 		echo "shellcheck: passed"; \
 	else \
 		echo "shellcheck not installed — install with: brew install shellcheck (macOS) or apt-get install shellcheck (Linux)"; \
