@@ -161,9 +161,57 @@ if feedback_count > 0:
     print(f"   See .pilot/feedback/ for details")
 print()
 
+# --- Persona fit (v1.1+ telemetry) ---
+custom_role_users = 0
+fit_checked = 0
+fit_true = 0
+fit_false = 0
+role_categories = Counter()
+
+for u in users:
+    for s in u.get("sessions", []):
+        if s.get("used_custom_role"):
+            custom_role_users += 1
+            break
+    # Use latest session's fit data
+    sessions = u.get("sessions", [])
+    if sessions:
+        latest = sessions[-1]
+        pf = latest.get("persona_fit")
+        if pf is not None:
+            fit_checked += 1
+            if pf:
+                fit_true += 1
+            else:
+                fit_false += 1
+        cat = latest.get("custom_role_category")
+        if cat:
+            role_categories[cat] += 1
+
+print(f"8. PERSONA FIT (v1.1+ data)")
+if fit_checked > 0 or custom_role_users > 0:
+    print(f"   Used custom role (Option 7): {custom_role_users}/{total_users}")
+    print(f"   Fit checked: {fit_checked}/{total_users}")
+    if fit_checked > 0:
+        print(f"     Fits well: {fit_true} ({fit_true/fit_checked*100:.0f}%)")
+        print(f"     Doesn't fit: {fit_false} ({fit_false/fit_checked*100:.0f}%)")
+    if role_categories:
+        print(f"   Custom role categories:")
+        for cat, c in role_categories.most_common():
+            print(f"     {cat}: {c}")
+        # Convergence detection
+        for cat, c in role_categories.most_common():
+            if c >= 3 and cat != "other":
+                print(f"   ⚠ CONVERGENCE: {c} users in '{cat}' — consider creating a dedicated persona")
+            elif c >= 3 and cat == "other":
+                print(f"   ⚠ GAP: {c} users in 'other' — investigate what roles are missing")
+else:
+    print("   No persona fit data yet (requires telemetry v1.1+)")
+print()
+
 # --- Schema version check ---
 versions = Counter(u.get("_schema_version", "unknown") for u in users)
-print(f"8. SCHEMA VERSIONS")
+print(f"9. SCHEMA VERSIONS")
 for v, c in versions.most_common():
     print(f"   v{v}: {c} file(s)")
 if len(versions) > 1:

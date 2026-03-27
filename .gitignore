@@ -67,3 +67,8 @@ target/
 
 # Local settings (per-user overrides)
 .claude/settings.local.json
+
+# Persona intelligence (private, encrypted per-user)
+.pilot/private/
+.claude/.pilot-intel-key
+.claude/.persona-fit-nudged

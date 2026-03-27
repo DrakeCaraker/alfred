@@ -1,7 +1,7 @@
-# Alfred Persona Schema v1.0
+# Alfred Persona Schema v1.1
 # This defines the structure for .claude/alfred-persona.yaml files
 
-schema_version: "1.0"
+schema_version: "1.1"
 
 fields:
   name:
@@ -17,6 +17,14 @@ fields:
     secondary:
       type: list[string]
       description: "Secondary domains"
+    description:
+      type: string
+      description: "Free-text role description from bootstrap Option 7. Local only — never included in telemetry."
+      example: "I do DevOps and SRE for a fintech company"
+    category:
+      type: string
+      description: "Categorized role from collective/role-categories.yaml. Safe for telemetry."
+      examples: ["devops-sre", "ml-training", "backend-dev"]
 
   explain:
     level:

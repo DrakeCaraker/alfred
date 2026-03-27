@@ -102,8 +102,14 @@ Update the aggregates object:
 - days_active: count of unique dates in sessions
 - first_graduation_session: session_number of first graduation (or null)
 
-Schema must include: _schema_version "1.0", _collected_by "alfred-pilot-telemetry", _privacy_notice.
-NEVER include file paths, branch names, commit messages, project names, or any PII/PHI.
+Also include these persona intelligence fields:
+- used_custom_role: true if custom_role_description exists in onboarding state, false otherwise
+- persona_fit: value of persona_fit from onboarding state (true/false/null if not yet checked)
+- custom_role_category: value of custom_role_category from onboarding state (enum from collective/role-categories.yaml, or null)
+
+Schema must include: _schema_version "1.1", _collected_by "alfred-pilot-telemetry", _privacy_notice.
+NEVER include file paths, branch names, commit messages, project names, free-text descriptions, or any PII/PHI.
+NEVER include custom_role_description or persona_gap — these are local-only fields.
 SYSMSG
 
 exit 0

@@ -1,0 +1,90 @@
+# Alfred Role Categories v1.0
+# Fixed taxonomy for categorizing custom roles in telemetry.
+# Claude reads this during /persona check to categorize free-text role
+# descriptions into anonymized labels safe for telemetry.
+#
+# When 3+ users converge on the same category (especially "other"),
+# that's the signal to create a new persona template.
+
+schema_version: "1.0"
+
+categories:
+  # Maps to ml-ds persona
+  - id: ml-training
+    label: "ML / Model Training"
+    signals: ["model", "training", "experiment", "hyperparameter", "neural net", "deep learning", "fine-tuning"]
+
+  - id: ml-ops
+    label: "ML Ops / ML Engineering"
+    signals: ["deployment", "serving", "pipeline", "feature store", "model registry", "monitoring", "inference"]
+
+  # Maps to research persona
+  - id: research-academic
+    label: "Academic Research"
+    signals: ["paper", "publication", "statistical analysis", "reproducibility", "IRB", "peer review", "journal"]
+
+  - id: research-applied
+    label: "Applied Research / R&D"
+    signals: ["prototype", "proof of concept", "applied science", "R&D", "innovation"]
+
+  # Maps to business-analytics persona
+  - id: business-analytics
+    label: "Business Analytics"
+    signals: ["dashboard", "report", "SQL", "stakeholder", "KPI", "metrics", "Tableau", "Power BI"]
+
+  # Maps to product-analytics persona
+  - id: product-analytics
+    label: "Product Analytics"
+    signals: ["A/B test", "funnel", "cohort", "user behavior", "retention", "conversion", "experiment platform"]
+
+  # Maps to platform-bi persona
+  - id: data-engineering
+    label: "Data Engineering"
+    signals: ["warehouse", "ETL", "dbt", "Snowflake", "BigQuery", "Redshift", "data quality", "Airflow", "Spark"]
+
+  - id: platform-engineering
+    label: "Platform Engineering"
+    signals: ["internal tools", "developer experience", "platform", "self-service", "infrastructure for teams"]
+
+  # Maps to general persona (currently catches all of these)
+  - id: backend-dev
+    label: "Backend Development"
+    signals: ["API", "backend", "server", "microservice", "database", "REST", "GraphQL"]
+
+  - id: frontend-dev
+    label: "Frontend Development"
+    signals: ["React", "Vue", "Angular", "CSS", "UI", "browser", "frontend", "web app"]
+
+  - id: fullstack-dev
+    label: "Full-Stack Development"
+    signals: ["full-stack", "fullstack", "both frontend and backend"]
+
+  - id: devops-sre
+    label: "DevOps / SRE"
+    signals: ["infrastructure", "reliability", "CI/CD", "Kubernetes", "Docker", "Terraform", "monitoring", "on-call"]
+
+  - id: technical-writing
+    label: "Technical Writing"
+    signals: ["documentation", "API docs", "guides", "tutorials", "technical communication"]
+
+  # Catch-all
+  - id: other
+    label: "Other"
+    signals: []
+
+# Mapping from category to closest existing persona template
+persona_mapping:
+  ml-training: ml-ds
+  ml-ops: ml-ds
+  research-academic: research
+  research-applied: research
+  business-analytics: business-analytics
+  product-analytics: product-analytics
+  data-engineering: platform-bi
+  platform-engineering: platform-bi
+  backend-dev: general
+  frontend-dev: general
+  fullstack-dev: general
+  devops-sre: general
+  technical-writing: general
+  other: general

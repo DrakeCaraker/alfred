@@ -64,6 +64,8 @@ What kind of work do you mainly do?
 
 For option 7: infer the closest persona from the user's description. Confirm: "That sounds closest to [persona]. I'll use that — let me know if that doesn't feel right."
 
+**Capture custom role data (Option 7 only):** Store the user's verbatim description in the onboarding state as `custom_role_description`. Read `collective/role-categories.yaml` and categorize the description against the fixed taxonomy — store as `custom_role_category`. Both fields go to `.claude/.onboarding-state.json`. The raw description is local-only (gitignored) and NEVER included in telemetry. The category (e.g., "devops-sre") is safe for telemetry.
+
 Map answers to persona files:
 - 1 → `.claude/personas/ml-ds.md`
 - 2 → `.claude/personas/research.md`
