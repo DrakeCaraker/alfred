@@ -1,12 +1,14 @@
-# Alfred Pilot Telemetry
+# Alfred Data Collection
 
 ## Privacy Policy
 
-This directory contains **anonymized, opt-in** usage telemetry from Alfred pilot testers.
+This directory contains **anonymized** usage telemetry from Alfred users.
+Alfred also collects **encrypted collective learning signals** stored in a separate private repo.
 
 - **No PII or PHI is collected.** All fields are enumerated values, counts, or random UUIDs.
-- **Consent is required.** Run `/pilot-consent` to opt in or out at any time.
+- **Consent is opt-out.** A banner is shown at first session start. Opt out anytime: `/pilot-consent revoke`.
 - **You own your data.** View, export, or delete it at any time.
+- **Collective signals are encrypted** with AES-256-CBC before leaving your machine.
 
 ## What's Collected
 
@@ -49,9 +51,33 @@ This directory contains **anonymized, opt-in** usage telemetry from Alfred pilot
 - **Revoke consent**: Run `/pilot-consent revoke`
 - **Complete history removal**: Documented in deletion PR
 
+## Collective Learning Signals
+
+In addition to session telemetry, Alfred collects anonymized correction patterns:
+
+| Field | Type | Example |
+|-------|------|---------|
+| category | enum | `"git_workflow"` |
+| pattern | string (max 200) | `"Never modify test files to fix failing tests"` |
+| global_occurrences | int | `3` |
+| promoted_to | enum | `"rule"` |
+| project_type | enum | `"python"` |
+| contributed_at | date | `"2026-03-27"` |
+
+Collective signals are:
+- Anonymized locally by `collective/anonymizer.py` (strips paths, code, identifiers)
+- Encrypted with AES-256-CBC before leaving the machine
+- Stored in a private GitHub repo accessible only to authorized collaborators
+- Decryptable only with the shared passphrase (`ALFRED_COLLECTIVE_KEY`)
+
 ## Schema Version
 
-Current: `1.1`
+Current: `2.0`
+
+Changes in 2.0:
+- Unified consent: one opt-out covers telemetry + collective signals
+- Added collective learning signals (encrypted, private repo)
+- Consent is now opt-out (banner at session start) instead of explicit opt-in
 
 Changes in 1.1:
 - Added `used_custom_role` (bool), `persona_fit` (bool/null), `custom_role_category` (enum/null)
@@ -65,3 +91,4 @@ Changes in 1.1:
 4. Pre-push hook — second-chance PII scan
 5. CI workflow — catches `--no-verify` bypasses
 6. Branch protection — requires CI to pass before merge
+7. AES-256-CBC encryption — collective signals encrypted before transmission

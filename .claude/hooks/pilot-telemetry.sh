@@ -112,4 +112,23 @@ NEVER include file paths, branch names, commit messages, project names, free-tex
 NEVER include custom_role_description or persona_gap — these are local-only fields.
 SYSMSG
 
+# Aggregate collective signals locally (no network call — fast)
+# These will be pushed on next session start by session-start.sh
+project_key=$(pwd | sed 's|/|-|g; s|^-||')
+memory_dir="$HOME/.claude/projects/-${project_key}/memory"
+# Also check parent project memory dir (some projects store memories at a higher level)
+parent_memory_dir="$HOME/.claude/projects/-$(echo "$HOME" | sed 's|/|-|g; s|^-||')/memory"
+
+# Find the memory dir that has feedback files
+active_memory_dir=""
+if ls "$memory_dir"/feedback_*.md >/dev/null 2>&1; then
+    active_memory_dir="$memory_dir"
+elif ls "$parent_memory_dir"/feedback_*.md >/dev/null 2>&1; then
+    active_memory_dir="$parent_memory_dir"
+fi
+
+if [ -n "$active_memory_dir" ] && [ -f "collective/aggregator.py" ]; then
+    python3 collective/aggregator.py "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
+fi
+
 exit 0

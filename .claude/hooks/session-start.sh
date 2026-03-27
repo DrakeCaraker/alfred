@@ -83,21 +83,20 @@ if [ "$coding_level" != "beginner" ]; then
     fi
 fi
 
-# 5a. Pilot consent nudge (sessions 1, 3, 5 only)
+# 5a. Unified consent (telemetry + collective signals)
 if [ -f ".claude/.onboarding-state.json" ] && [ ! -f ".claude/.pilot-consent.json" ]; then
-    nudge_file=".claude/.pilot-nudge-count"
-    nudge_count=0
-    if [ -f "$nudge_file" ]; then
-        nudge_count=$(cat "$nudge_file" 2>/dev/null || echo 0)
-    fi
-    if [ "$nudge_count" -lt 5 ]; then
-        # Show nudge on counts 0, 2, 4 (sessions 1, 3, 5)
-        if [ "$((nudge_count % 2))" -eq 0 ]; then
-            echo "" >&2
-            echo "Pilot: Alfred has opt-in telemetry. Run /pilot-consent to learn what's collected." >&2
-        fi
-        echo "$((nudge_count + 1))" > "$nudge_file"
-    fi
+    echo "" >&2
+    echo "Alfred collects anonymized learning signals to improve team rules." >&2
+    echo "Signals contain no code, file paths, or identifiers." >&2
+    echo "See .pilot/README.md for full details. To opt out: /pilot-consent revoke" >&2
+    # Grant consent by default (opt-out model)
+    python3 -c "
+import json
+from datetime import date
+consent = {'consented': True, 'consent_date': str(date.today()), 'schema_version': '2.0'}
+with open('.claude/.pilot-consent.json', 'w') as f:
+    json.dump(consent, f, indent=2)
+" 2>/dev/null
 fi
 
 # 5a.5. Persona fit nudge (one-time, at session 3+)
@@ -209,6 +208,11 @@ for p in order:
         echo "" >&2
         echo "All habits graduated! Run /health-check to assess project maturity." >&2
     fi
+fi
+
+# 10. Push pending collective signals (silent, non-blocking)
+if [ -f ".claude/.collective-pending.json" ] && [ -n "${ALFRED_COLLECTIVE_KEY:-}" ]; then
+    bash scripts/collective-sync.sh push-pending >/dev/null 2>&1 &
 fi
 
 echo "" >&2

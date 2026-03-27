@@ -48,6 +48,13 @@ if [ ! -f "$INPUT_FILE" ]; then
     exit 2
 fi
 
+# Whitelist: privacy policy files intentionally list PHI terms in "never collected" context
+case "$INPUT_FILE" in
+    *.pilot/README.md)
+        exit 0
+        ;;
+esac
+
 content=$(cat "$INPUT_FILE")
 
 flag_pii() {
