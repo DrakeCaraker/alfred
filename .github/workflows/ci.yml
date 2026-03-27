@@ -70,6 +70,11 @@ jobs:
             fi
           done
 
+      - name: Lint shell scripts (shellcheck)
+        run: |
+          sudo apt-get -qq install -y shellcheck > /dev/null 2>&1
+          shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh
+
       - name: Verify command copies in sync
         run: |
           out_of_sync=0

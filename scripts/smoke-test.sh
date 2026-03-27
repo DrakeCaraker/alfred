@@ -24,6 +24,14 @@ warn() {
     WARN=$((WARN + 1))
 }
 
+check_file() {
+    if [ -f "$2" ]; then check "$1" "0"; else check "$1" "1"; fi
+}
+
+check_exec() {
+    if [ -x "$2" ]; then check "$1" "0"; else check "$1" "1"; fi
+}
+
 echo "Alfred Smoke Test"
 echo "=================="
 echo ""
@@ -72,7 +80,7 @@ for f in \
     .pilot/README.md \
     .pilot/telemetry/.gitkeep \
     .pilot/feedback/.gitkeep; do
-    test -f "$f"; check "$f exists" "$?"
+    check_file "$f exists" "$f"
 done
 echo ""
 
@@ -91,7 +99,7 @@ echo ""
 # 4. Shell scripts are executable
 echo "4. Shell scripts executable"
 for sh in .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/pii-scanner.sh scripts/test-pii-scanner.sh scripts/aggregate-pilot.sh; do
-    test -x "$sh"; check "$sh is executable" "$?"
+    check_exec "$sh is executable" "$sh"
 done
 echo ""
 
@@ -138,7 +146,7 @@ for event_hooks in d.get('hooks', {}).values():
             if h.get('type') == 'command':
                 print(h['command'])
 " 2>/dev/null); do
-    test -f "$hook_path"; check "Hook path $hook_path exists" "$?"
+    check_file "Hook path $hook_path exists" "$hook_path"
 done
 echo ""
 
@@ -167,19 +175,19 @@ for f in \
     skills/persona-evolve/SKILL.md \
     skills/collective-contribute/SKILL.md \
     collective/signal_schema.yaml; do
-    test -f "$f"; check "Plugin: $f exists" "$?"
+    check_file "Plugin: $f exists" "$f"
 done
 # Plugin commands mirror .claude/commands
 for cmd in bootstrap.md teach.md status.md commit.md new-work.md ci-fix.md self-improve.md health-check.md safe-refactor.md experiment-summary.md pr.md; do
-    test -f "commands/$cmd"; check "Plugin command: $cmd exists" "$?"
+    check_file "Plugin command: $cmd exists" "commands/$cmd"
 done
 # Plugin hooks mirror .claude/hooks
 for hook in session-start.sh format-on-write.sh session-bookmark.sh feedback-capture.sh pre-compact.sh pilot-telemetry.sh; do
-    test -f "hooks/$hook"; check "Plugin hook: $hook exists" "$?"
+    check_file "Plugin hook: $hook exists" "hooks/$hook"
 done
 # Plugin personas mirror .claude/personas
 for p in ml-ds.md research.md business-analytics.md product-analytics.md platform-bi.md general.md; do
-    test -f "personas/$p"; check "Plugin persona: $p exists" "$?"
+    check_file "Plugin persona: $p exists" "personas/$p"
 done
 # JSON validity for plugin manifests
 python3 -m json.tool .claude-plugin/plugin.json > /dev/null 2>&1; check "plugin.json is valid JSON" "$?"
