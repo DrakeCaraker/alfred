@@ -1,6 +1,6 @@
 # Alfred Status
 
-Show onboarding progress, graduated patterns, and contextual next steps.
+Show onboarding progress, graduated habits, and contextual next steps.
 
 ## Algorithm
 
@@ -11,8 +11,8 @@ Show onboarding progress, graduated patterns, and contextual next steps.
    - Persona name and coding level
    - Session count
    - Code complexity level
-   - Number of graduated patterns
-   - Next ungraduated pattern (in order: context_before_action → self_improvement)
+   - Number of graduated habits
+   - Next ungraduated habit (in order: context_before_action → self_improvement)
    - Overall level: Beginner (0-3), Practitioner (4-6), Proficient (7-8)
 
 3. Display the status dashboard:
@@ -21,9 +21,9 @@ Show onboarding progress, graduated patterns, and contextual next steps.
 Alfred Status — [Persona Name] ([coding_level])
 Bootstrapped: [date] | Sessions: [count] | Code Level: [code_complexity_level]
 
-Pattern Progress: [N/8 graduated]
+Habit Progress: [N/8 graduated]
 
-  # | Pattern                  | Status
+  # | Habit                    | Status
 ----|--------------------------|------------------
   1 | Context before action    | ✓ graduated
   2 | Scope before work        | ✓ graduated
@@ -35,15 +35,15 @@ Pattern Progress: [N/8 graduated]
   8 | Self-improvement         | · not started
 
 Overall Level: Beginner
-  Beginner:     0-3 patterns graduated
-  Practitioner: 4-6 patterns graduated
-  Proficient:   7-8 patterns graduated
+  Beginner:     0-3 habits graduated
+  Practitioner: 4-6 habits graduated
+  Proficient:   7-8 habits graduated
 ```
 
 4. Show contextual recommendation:
    - 0 graduated: "Next step: Run /teach to start learning"
-   - Some graduated: "Next step: Run /teach to learn [next pattern name]"
-   - All graduated: "All patterns learned! Run /health-check to assess project maturity, or /self-improve to optimize."
+   - Some graduated: "Next step: Run /teach to learn [next habit name]"
+   - All graduated: "All habits learned! Run /health-check to assess project maturity, or /self-improve to optimize."
 
 ## Pattern order
 

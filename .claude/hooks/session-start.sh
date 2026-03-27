@@ -95,7 +95,7 @@ feedback_count=$(ls "$memory_dir"/feedback_*.md 2>/dev/null | wc -l | tr -d ' ')
 
 if [ "$feedback_count" -ge 5 ]; then
     echo "" >&2
-    echo "Improvement: $feedback_count feedback memories accumulated. Consider running /self-improve to promote recurring patterns to CLAUDE.md rules or hooks." >&2
+    echo "Improvement: $feedback_count feedback memories accumulated. Consider running /self-improve to promote recurring corrections to CLAUDE.md rules or hooks." >&2
 elif [ "$session_count" -ge 10 ]; then
     echo "" >&2
     echo "Improvement: $session_count sessions since last /self-improve. Consider running /self-improve to check for new improvements." >&2
@@ -107,9 +107,9 @@ if [ -f "$state_file" ]; then
     persona=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('persona','unknown'))" 2>/dev/null)
     coding_level=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('coding_level','unknown'))" 2>/dev/null)
     graduated=$(python3 -c "import json; d=json.load(open('$state_file')); print(sum(1 for p in d.get('patterns',{}).values() if p.get('graduated')))" 2>/dev/null)
-    total_patterns=8
+    total_habits=8
     echo "" >&2
-    echo "Alfred: $persona ($coding_level) | Patterns: $graduated/$total_patterns graduated" >&2
+    echo "Alfred: $persona ($coding_level) | Habits: $graduated/$total_habits graduated" >&2
 else
     echo "" >&2
     echo "Alfred: Not bootstrapped. Run /bootstrap to get started." >&2
@@ -129,9 +129,9 @@ fi
 if [ -f "$state_file" ]; then
     if [ "$graduated" = "0" ] && [ "$session_count" -le 3 ]; then
         echo "" >&2
-        echo "Tip: Run /teach to learn your first development pattern" >&2
-    elif [ "$graduated" -lt "$total_patterns" ]; then
-        next_pattern=$(python3 -c "
+        echo "Tip: Run /teach to learn your first development habit" >&2
+    elif [ "$graduated" -lt "$total_habits" ]; then
+        next_habit=$(python3 -c "
 import json
 order = ['context_before_action','scope_before_work','save_points','safe_experimentation','one_change_one_test','automated_recovery','provenance','self_improvement']
 names = {'context_before_action':'Context before action','scope_before_work':'Scope before work','save_points':'Save points','safe_experimentation':'Safe experimentation','one_change_one_test':'One change one test','automated_recovery':'Automated recovery','provenance':'Provenance','self_improvement':'Self-improvement'}
@@ -141,10 +141,10 @@ for p in order:
         print(names.get(p,p)); break
 " 2>/dev/null)
         echo "" >&2
-        echo "Next pattern: $next_pattern — run /teach to continue" >&2
-    elif [ "$graduated" = "$total_patterns" ]; then
+        echo "Next habit: $next_habit — run /teach to continue" >&2
+    elif [ "$graduated" = "$total_habits" ]; then
         echo "" >&2
-        echo "All patterns graduated! Run /health-check to assess project maturity." >&2
+        echo "All habits graduated! Run /health-check to assess project maturity." >&2
     fi
 fi
 

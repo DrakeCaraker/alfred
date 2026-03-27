@@ -6,10 +6,10 @@ For habit details, see [`docs/AI_ASSISTED_DEV_GUIDE.md`](../docs/AI_ASSISTED_DEV
 
 ## Slash Commands
 
-| Command | Pattern Taught | Description |
+| Command | Habit Taught | Description |
 |---------|---------------|-------------|
 | /bootstrap | — | Persona-aware project setup |
-| /teach | All 8 | Progressive pattern lessons |
+| /teach | All 8 | Progressive habit lessons |
 | /status | — | Onboarding progress dashboard |
 | /commit | #3 Save points | Safe commit with file guards |
 | /new-work | #2 Scope, #4 Experimentation | Branch hygiene + scoped work |
@@ -36,9 +36,9 @@ For habit details, see [`docs/AI_ASSISTED_DEV_GUIDE.md`](../docs/AI_ASSISTED_DEV
 | Pre-compact | .claude/hooks/pre-compact.sh | PreCompact | Preserve context before compression |
 | Pre-push | .githooks/pre-push | git push | Block binaries + main pushes |
 
-## Pattern → External Skill Mapping
+## Habit → External Skill Mapping
 
-| Pattern | Built-in Command | External Superpowers Skill |
+| Habit | Built-in Command | External Superpowers Skill |
 |---------|-----------------|---------------------------|
 | Scope before work | /new-work | superpowers:brainstorming, superpowers:writing-plans |
 | Safe experimentation | /new-work | superpowers:using-git-worktrees |

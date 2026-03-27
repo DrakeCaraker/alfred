@@ -132,8 +132,8 @@ Write a new CLAUDE.md file with this structure. Adapt content from the persona f
 | Command | Purpose |
 |---------|---------|
 | /bootstrap | Persona-aware project setup (you just ran this) |
-| /teach | Learn the next development pattern |
-| /status | See your progress and graduated patterns |
+| /teach | Learn the next development habit |
+| /status | See your progress and graduated habits |
 | /commit | Safe commit with file guards |
 | /new-work | Start scoped work on a new branch |
 | /ci-fix | Auto-fix CI failures in a loop |
@@ -152,7 +152,7 @@ Write a new CLAUDE.md file with this structure. Adapt content from the persona f
 
 ## Explain Gate
 
-When you encounter a slash command for a pattern you haven't graduated yet, briefly explain what it does and why before executing. Check `.claude/.onboarding-state.json` for graduation status. Once graduated, execute silently.
+When you encounter a slash command for a habit you haven't graduated yet, briefly explain what it does and why before executing. Check `.claude/.onboarding-state.json` for graduation status. Once graduated, execute silently.
 
 ## Do NOT
 
@@ -184,9 +184,9 @@ Write `.claude/.onboarding-state.json`:
 }
 ```
 
-**For Advanced users (coding_level "advanced")**: Set ALL patterns to `"graduated": true` — they get auto-mode immediately with no teaching. They can always opt back in with `/teach <pattern>`.
+**For Advanced users (coding_level "advanced")**: Set ALL habits to `"graduated": true` — they get auto-mode immediately with no teaching. They can always opt back in with `/teach <name>`.
 
-For Beginner and Intermediate users: All patterns start with `"graduated": false`.
+For Beginner and Intermediate users: All habits start with `"graduated": false`.
 
 ## Step 6: Generate alfred.yaml
 
@@ -282,7 +282,7 @@ Alfred is set up for [persona] development.
 - CLAUDE.md generated with domain-specific guardrails
 - All 8 habits in auto-mode (no explanations unless you ask)
 
-Available: /status, /health-check, /self-improve, /teach <pattern>
+Available: /status, /health-check, /self-improve, /teach <name>
 ```
 
 ## Rules

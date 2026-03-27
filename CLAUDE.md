@@ -13,8 +13,5 @@ references for every command. Takes about 2 minutes.
 2. Run `/teach` to learn the first development habit
 3. Run `/status` to check your progress
 
-After bootstrap, this file becomes the project's AI instruction set —
+Once you run bootstrap, this file becomes the project's AI instruction set —
 read by Claude at the start of every session.
-
-This file will be replaced by `/bootstrap` with a persona-tailored version
-including your project description, guardrails, and conventions.

@@ -1,14 +1,14 @@
 # Alfred Teach — Progressive Habit Engine
 
-Teach development patterns one at a time, using domain-specific analogies. Each lesson has 4 phases: Context, Demo, Install, Verify.
+Teach development habits one at a time, using domain-specific analogies. Each lesson has 4 phases: Context, Demo, Install, Verify.
 
 ## Usage
 
-- `/teach` — deliver the next ungraduated pattern (in order 1→8)
-- `/teach <pattern-name>` — deliver a specific pattern (e.g., `/teach save-points`)
-- `/teach all` — show all 8 patterns with graduation status
+- `/teach` — deliver the next ungraduated habit (in order 1→8)
+- `/teach <name>` — deliver a specific habit (e.g., `/teach save-points`)
+- `/teach all` — show all 8 habits with graduation status
 
-Pattern names (for direct access):
+Habit names (for direct access):
 `context-before-action`, `scope-before-work`, `save-points`, `safe-experimentation`,
 `one-change-one-test`, `automated-recovery`, `provenance`, `self-improvement`
 
@@ -31,7 +31,7 @@ Pattern names (for direct access):
      6. automated_recovery
      7. provenance
      8. self_improvement
-   - If all patterns are graduated: "All 8 patterns graduated! Run /status to see your progress, or /teach <pattern> to revisit any pattern."
+   - If all habits are graduated: "All 8 habits graduated! Run /status to see your progress, or /teach <name> to revisit any habit."
 
 ## Step 2: Deliver the lesson (4 phases)
 
@@ -41,7 +41,7 @@ Use the persona's analogy for this pattern. Frame it in the user's domain langua
 
 Format:
 ```
-## Pattern [N]: [Pattern Name]
+## Habit [N]: [Name]
 
 [Persona analogy from the Analogy Map — the full text, not abbreviated]
 
@@ -69,7 +69,7 @@ Show the actual command or feature in action. Use the user's real project files,
 
 Confirm the corresponding command/hook is active:
 ```
-This pattern is now part of your workflow:
+This habit is now part of your workflow:
 - Command: [/command-name] — [what it does]
 - Hook: [hook name if applicable] — [when it runs]
 
@@ -115,29 +115,29 @@ Write the updated state back to `.claude/.onboarding-state.json`.
 
 ## Step 4: Graduation message
 
-If the pattern was just graduated (either by seen count or immediate graduation):
+If the habit was just graduated (either by seen count or immediate graduation):
 
 ```
-Pattern [N] graduated: [Pattern Name] ✓
+Habit [N] graduated: [Name] ✓
 
 From now on, [command/hook] will work silently in auto-mode.
-You won't see explanations for this pattern unless you run /teach [pattern-name] again.
+You won't see explanations for this habit unless you run /teach [name] again.
 
-[N/8 patterns graduated] — [Level name: Beginner (0-3), Practitioner (4-6), Proficient (7-8)]
+[N/8 habits graduated] — [Level name: Beginner (0-3), Practitioner (4-6), Proficient (7-8)]
 ```
 
-If the user just graduated ALL 8 patterns:
+If the user just graduated ALL 8 habits:
 ```
-All 8 patterns graduated! You've reached Proficient level.
+All 8 habits graduated! You've reached Proficient level.
 
 The system now operates in full auto-mode — no explanations unless you ask.
-Run /status anytime to see your progress, or /teach <pattern> to revisit.
+Run /status anytime to see your progress, or /teach <name> to revisit.
 ```
 
-If the pattern was NOT graduated:
+If the habit was NOT graduated:
 ```
-Pattern [N]: [Pattern Name] — seen [X] time(s). [3-X] more to graduate.
-Run /teach anytime to continue, or the system will explain as patterns come up naturally.
+Habit [N]: [Name] — seen [X] time(s). [3-X] more to graduate.
+Run /teach anytime to continue, or the system will explain as habits come up naturally.
 ```
 
 ## Step 5: Show all (for `/teach all`)
@@ -147,7 +147,7 @@ Display a progress table:
 ```
 Alfred Onboarding — [Persona Name] ([coding level])
 
-  # | Pattern                  | Status          | Command
+  # | Habit                    | Status          | Command
 ----|--------------------------|-----------------|------------------
   1 | Context before action    | ✓ graduated     | (session-start hook)
   2 | Scope before work        | ○ seen 2x       | /new-work
@@ -159,12 +159,12 @@ Alfred Onboarding — [Persona Name] ([coding level])
   8 | Self-improvement         | · not started   | /self-improve
 
 Progress: 1/8 graduated | Level: Beginner
-Next: Run /teach to learn "Scope before work" (pattern #2)
+Next: Run /teach to learn "Scope before work" (habit #2)
 ```
 
-## Pattern-to-command reference
+## Habit-to-command reference
 
-| # | Pattern key | Friendly name | Command | Hook |
+| # | Key | Friendly name | Command | Hook |
 |---|-------------|--------------|---------|------|
 | 1 | context_before_action | Context before action | — | session-start.sh |
 | 2 | scope_before_work | Scope before work | /new-work | — |

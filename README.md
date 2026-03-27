@@ -7,11 +7,11 @@ and a self-improvement loop that turns your corrections into permanent rules.
 
 ## Install + Demo
 
-Setup takes 2 minutes. You answer 3 questions, Alfred does the rest.
+Requires [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview). Setup takes 2 minutes. You answer 3 questions, Alfred does the rest.
 
 ```bash
 git clone https://github.com/DrakeCaraker/alfred.git my-project
-cd my-project && claude
+cd my-project && git config core.hooksPath .githooks && claude
 ```
 
 ```
@@ -117,11 +117,11 @@ The habits span the full cycle — from checking context before starting, throug
 
 ## For teams
 
-Alfred is per-repo. Each team member runs `/bootstrap` with their own persona and coding level — guardrails are consistent, explanations are personalized.
+Alfred is per-repo. Each team member runs `/bootstrap` with their own persona and coding level — guardrails are consistent, explanations are personalized. The first member bootstraps and commits CLAUDE.md — that becomes the shared team config. Others run `/bootstrap` and choose "keep existing" to get personal onboarding with shared guardrails.
 
 **The team flywheel:**
 
-1. **Someone discovers a pattern.** A team member corrects Alfred: "always validate join row counts before aggregating." Alfred saves it as a feedback memory.
+1. **Someone makes a correction.** A team member corrects Alfred: "always validate join row counts before aggregating." Alfred saves it as a feedback memory.
 2. **It becomes a team rule.** `/self-improve` promotes recurring corrections to CLAUDE.md — which lives in the repo and applies to every team member.
 3. **It gets enforced.** If the rule is still violated, the next `/self-improve` run promotes it to a pre-commit hook that blocks the mistake automatically.
 
