@@ -12,6 +12,7 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 3. **Read before planning.** Verify by reading actual code before proposing any changes.
 4. **Capture corrections immediately.** When redirected ("no", "don't", "stop", "instead"), save a feedback memory before continuing with the corrected approach.
 5. **Vet before committing to plans.** Before calling ExitPlanMode or claiming a plan is complete, run the /vet checklist: verify assumptions against actual code, identify missing failure modes, and flag remaining uncertainties. Do not present unvetted plans as ready.
+6. **Sync command copies.** After editing `.claude/commands/*.md`, always copy to `commands/` — both directories must match. CI will reject mismatches.
 
 ## Guardrails
 
@@ -21,6 +22,7 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 - Use relative paths only — never hardcode absolute paths (breaks reproducibility)
 - Version paper drafts explicitly (v1, v2, v3) — never overwrite previous versions
 - Never commit participant-identifiable data (PII, PHI) to git
+- Free-text user data (role descriptions, persona gaps) stays local only (gitignored). Only fixed-taxonomy enums from `collective/role-categories.yaml` may flow to shared telemetry. Never put raw descriptions in telemetry, collective signals, or encrypted staging.
 
 ## Directory Map
 
