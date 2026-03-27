@@ -48,7 +48,7 @@ MAX_SIZE=$((CONFIGURED_MAX_MB * 1048576))
 BLOCKED_EXTENSIONS="$CONFIGURED_EXTENSIONS"
 ERRORS=0
 
-while read local_ref local_sha remote_ref remote_sha; do
+while read _local_ref local_sha _remote_ref remote_sha; do
     if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
         range="$local_sha"
     else

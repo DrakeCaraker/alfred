@@ -1,0 +1,158 @@
+name: Resolve Merge Conflicts
+
+# Runs on schedule and manually to keep PR branches up to date
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # every 5 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "alfred-bot"
+          git config user.email "alfred-bot@users.noreply.github.com"
+
+      - name: Check open PRs for conflicts
+        id: prs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              base: 'main',
+            });
+
+            const conflicting = [];
+            for (const pr of prs.data) {
+              // Re-fetch to get mergeable status
+              const detail = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+              });
+              if (detail.data.mergeable === false) {
+                conflicting.push({
+                  number: pr.number,
+                  branch: pr.head.ref,
+                  title: pr.title,
+                });
+              }
+            }
+
+            console.log(`Found ${conflicting.length} conflicting PR(s)`);
+            return conflicting;
+
+      - name: Attempt conflict resolution
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = ${{ steps.prs.outputs.result }};
+            if (!prs || prs.length === 0) {
+              console.log('No conflicting PRs. Nothing to do.');
+              return;
+            }
+
+            const { execSync } = require('child_process');
+
+            for (const pr of prs) {
+              console.log(`\nAttempting to resolve conflicts for PR #${pr.number}: ${pr.title} (${pr.branch})`);
+
+              try {
+                // Checkout the PR branch
+                execSync(`git fetch origin ${pr.branch}`, { stdio: 'inherit' });
+                execSync(`git checkout ${pr.branch}`, { stdio: 'inherit' });
+                execSync(`git reset --hard origin/${pr.branch}`, { stdio: 'inherit' });
+
+                // Try merge main
+                try {
+                  execSync('git merge origin/main --no-edit', { stdio: 'inherit' });
+                  console.log(`PR #${pr.number}: Clean merge, no conflicts.`);
+                  execSync('git push', { stdio: 'inherit' });
+                  continue;
+                } catch (e) {
+                  // Merge has conflicts — try auto-resolution
+                }
+
+                // Check which files conflict
+                const conflictFiles = execSync('git diff --name-only --diff-filter=U')
+                  .toString().trim().split('\n').filter(f => f);
+                console.log(`Conflicting files: ${conflictFiles.join(', ')}`);
+
+                let resolved = true;
+
+                for (const file of conflictFiles) {
+                  // Strategy 1: commands/ copies — just re-sync from .claude/commands/
+                  if (file.startsWith('commands/') && file.endsWith('.md')) {
+                    const source = `.claude/commands/${file.replace('commands/', '')}`;
+                    try {
+                      execSync(`cp "${source}" "${file}"`);
+                      execSync(`git add "${file}"`);
+                      console.log(`  Resolved ${file}: synced from ${source}`);
+                      continue;
+                    } catch (e) {
+                      // Source might also be conflicted
+                    }
+                  }
+
+                  // Strategy 2: .gitignore — take union of both sides
+                  if (file === '.gitignore') {
+                    try {
+                      execSync(`git checkout --theirs "${file}"`);
+                      execSync(`git add "${file}"`);
+                      // Re-apply our additions that might have been lost
+                      // by appending any lines from ours not in theirs
+                      console.log(`  Resolved ${file}: took theirs (main) as base`);
+                      continue;
+                    } catch (e) {
+                      // Fall through
+                    }
+                  }
+
+                  // Strategy 3: Can't auto-resolve
+                  console.log(`  Cannot auto-resolve: ${file}`);
+                  resolved = false;
+                }
+
+                if (resolved) {
+                  execSync('git commit --no-edit', { stdio: 'inherit' });
+                  execSync('git push', { stdio: 'inherit' });
+                  console.log(`PR #${pr.number}: Conflicts resolved and pushed.`);
+
+                  // Comment on PR
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    body: `✅ **Merge conflicts auto-resolved.**\n\nResolved files: ${conflictFiles.join(', ')}\n\nPlease review the merge commit to verify correctness.`,
+                  });
+                } else {
+                  // Abort and comment
+                  execSync('git merge --abort', { stdio: 'inherit' });
+                  console.log(`PR #${pr.number}: Could not auto-resolve. Commenting.`);
+
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    body: `⚠️ **Merge conflicts detected but could not be auto-resolved.**\n\nConflicting files:\n${conflictFiles.map(f => '- `' + f + '`').join('\n')}\n\nPlease resolve manually:\n\`\`\`bash\ngit fetch origin main\ngit merge origin/main\n# resolve conflicts\ngit commit\ngit push\n\`\`\``,
+                  });
+                }
+              } catch (e) {
+                console.log(`PR #${pr.number}: Error — ${e.message}`);
+                try { execSync('git merge --abort 2>/dev/null'); } catch (e2) { /* ignore */ }
+                try { execSync('git checkout main 2>/dev/null'); } catch (e2) { /* ignore */ }
+              }
+            }

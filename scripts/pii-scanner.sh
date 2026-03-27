@@ -29,7 +29,7 @@ if [ "$1" = "--stdin" ]; then
     LABEL="$2"
     INPUT_FILE=$(mktemp)
     cat > "$INPUT_FILE"
-    trap "rm -f '$INPUT_FILE'" EXIT
+    trap 'rm -f "$INPUT_FILE"' EXIT
 elif [ "$1" = "--feedback" ]; then
     if [ $# -lt 2 ]; then
         echo "Error: --feedback requires a file argument" >&2

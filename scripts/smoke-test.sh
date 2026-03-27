@@ -24,6 +24,14 @@ warn() {
     WARN=$((WARN + 1))
 }
 
+check_file() {
+    if [ -f "$2" ]; then check "$1" "0"; else check "$1" "1"; fi
+}
+
+check_exec() {
+    if [ -x "$2" ]; then check "$1" "0"; else check "$1" "1"; fi
+}
+
 echo "Alfred Smoke Test"
 echo "=================="
 echo ""
@@ -72,7 +80,7 @@ for f in \
     .pilot/README.md \
     .pilot/telemetry/.gitkeep \
     .pilot/feedback/.gitkeep; do
-    test -f "$f"; check "$f exists" "$?"
+    check_file "$f exists" "$f"
 done
 echo ""
 
@@ -91,7 +99,7 @@ echo ""
 # 4. Shell scripts are executable
 echo "4. Shell scripts executable"
 for sh in .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/pii-scanner.sh scripts/test-pii-scanner.sh scripts/aggregate-pilot.sh; do
-    test -x "$sh"; check "$sh is executable" "$?"
+    check_exec "$sh is executable" "$sh"
 done
 echo ""
 
@@ -138,7 +146,7 @@ for event_hooks in d.get('hooks', {}).values():
             if h.get('type') == 'command':
                 print(h['command'])
 " 2>/dev/null); do
-    test -f "$hook_path"; check "Hook path $hook_path exists" "$?"
+    check_file "Hook path $hook_path exists" "$hook_path"
 done
 echo ""
 
@@ -167,19 +175,19 @@ for f in \
     skills/persona-evolve/SKILL.md \
     skills/collective-contribute/SKILL.md \
     collective/signal_schema.yaml; do
-    test -f "$f"; check "Plugin: $f exists" "$?"
+    check_file "Plugin: $f exists" "$f"
 done
 # Plugin commands mirror .claude/commands
 for cmd in bootstrap.md teach.md status.md commit.md new-work.md ci-fix.md self-improve.md health-check.md safe-refactor.md experiment-summary.md pr.md; do
-    test -f "commands/$cmd"; check "Plugin command: $cmd exists" "$?"
+    check_file "Plugin command: $cmd exists" "commands/$cmd"
 done
 # Plugin hooks mirror .claude/hooks
 for hook in session-start.sh format-on-write.sh session-bookmark.sh feedback-capture.sh pre-compact.sh pilot-telemetry.sh; do
-    test -f "hooks/$hook"; check "Plugin hook: $hook exists" "$?"
+    check_file "Plugin hook: $hook exists" "hooks/$hook"
 done
 # Plugin personas mirror .claude/personas
 for p in ml-ds.md research.md business-analytics.md product-analytics.md platform-bi.md general.md; do
-    test -f "personas/$p"; check "Plugin persona: $p exists" "$?"
+    check_file "Plugin persona: $p exists" "personas/$p"
 done
 # JSON validity for plugin manifests
 python3 -m json.tool .claude-plugin/plugin.json > /dev/null 2>&1; check "plugin.json is valid JSON" "$?"
@@ -209,6 +217,55 @@ if [ "$pilot_hook" = "found" ]; then
     check "pilot-telemetry.sh registered in Stop hooks" "0"
 else
     check "pilot-telemetry.sh registered in Stop hooks" "1"
+fi
+echo ""
+
+# 11. Conflict marker check
+echo "11. Conflict marker check"
+# Build pattern from parts so this file doesn't match itself
+marker="<""<""<""<""<""<""< "
+conflict_files=$(grep -rl "$marker" --include="*.md" --include="*.sh" --include="*.json" --include="*.yaml" --include="*.yml" . 2>/dev/null | grep -v ".git/" | grep -v "node_modules/")
+if [ -z "$conflict_files" ]; then
+    check "No merge conflict markers in tracked files" "0"
+else
+    check "No merge conflict markers in tracked files" "1"
+    for cf in $conflict_files; do
+        echo "    CONFLICT: $cf"
+    done
+fi
+echo ""
+
+# 12. Command copy sync
+echo "12. Command copy sync"
+sync_ok=true
+for f in .claude/commands/*.md; do
+    base=$(basename "$f")
+    if [ -f "commands/$base" ]; then
+        if ! diff -q "$f" "commands/$base" > /dev/null 2>&1; then
+            check "commands/$base matches .claude/commands/$base" "1"
+            sync_ok=false
+        fi
+    fi
+done
+if [ "$sync_ok" = true ]; then
+    check "All command copies in sync" "0"
+fi
+echo ""
+
+# 13. YAML validity (requires PyYAML — skip with warning if not installed)
+echo "13. YAML validity"
+if python3 -c "import yaml" 2>/dev/null; then
+    for yf in personas/_schema.yaml personas/_default.yaml alfred.schema.yaml collective/signal_schema.yaml collective/role-categories.yaml; do
+        if [ -f "$yf" ]; then
+            if python3 -c "import yaml; yaml.safe_load(open('$yf'))" 2>/dev/null; then
+                check "$yf is valid YAML" "0"
+            else
+                check "$yf is valid YAML" "1"
+            fi
+        fi
+    done
+else
+    warn "PyYAML not installed — skipping YAML validation (pip install pyyaml)"
 fi
 echo ""
 

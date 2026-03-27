@@ -1,0 +1,127 @@
+name: Auto-Fix CI Failures
+
+# Triggers when the main CI workflow fails on a PR
+on:
+  workflow_run:
+    workflows: ["Alfred CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-fix:
+    # Only run on PR failures (not main branch failures)
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR branch
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            return {
+              branch: run.data.head_branch,
+              sha: run.data.head_sha,
+            };
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(steps.pr.outputs.result).branch }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "alfred-bot"
+          git config user.email "alfred-bot@users.noreply.github.com"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: |
+          pip install pyyaml
+          sudo apt-get -qq install -y shellcheck > /dev/null 2>&1
+
+      # Fix 1: Sync command copies (.claude/commands/ → commands/)
+      - name: Fix command copy sync
+        id: fix-sync
+        run: |
+          fixed=0
+          for f in .claude/commands/*.md; do
+            base=$(basename "$f")
+            if [ -f "commands/$base" ]; then
+              if ! diff -q "$f" "commands/$base" > /dev/null 2>&1; then
+                cp "$f" "commands/$base"
+                echo "Synced: commands/$base"
+                fixed=1
+              fi
+            fi
+          done
+          echo "fixed=$fixed" >> "$GITHUB_OUTPUT"
+
+      # Fix 2: Make scripts executable
+      - name: Fix script permissions
+        id: fix-perms
+        run: |
+          fixed=0
+          for sh in .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh; do
+            if [ -f "$sh" ] && [ ! -x "$sh" ]; then
+              chmod +x "$sh"
+              echo "Made executable: $sh"
+              fixed=1
+            fi
+          done
+          echo "fixed=$fixed" >> "$GITHUB_OUTPUT"
+
+      # Check if any fixes were made
+      - name: Commit and push fixes
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No auto-fixable issues found. CI failure requires manual intervention."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "fix(auto): resolve CI failures — command sync + permissions
+
+          Auto-fixed by Alfred CI auto-fix workflow.
+
+          Co-Authored-By: alfred-bot <alfred-bot@users.noreply.github.com>"
+
+          git push
+          echo "::notice::Auto-fix committed and pushed. CI will re-run."
+
+      # If we couldn't fix anything, comment on the PR
+      - name: Comment on PR if no auto-fix
+        if: failure() || (steps.fix-sync.outputs.fixed == '0' && steps.fix-perms.outputs.fixed == '0')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Find the PR for this branch
+            const branch = '${{ fromJSON(steps.pr.outputs.result).branch }}';
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open',
+            });
+            if (prs.data.length === 0) return;
+
+            const pr = prs.data[0];
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: `⚠️ **CI failed and auto-fix couldn't resolve it.**\n\nThe failure requires manual intervention. Run \`make check\` locally to reproduce, or check the [CI logs](${context.payload.workflow_run.html_url}).`,
+            });
