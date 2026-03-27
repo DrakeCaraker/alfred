@@ -73,9 +73,43 @@ claude
 
 Then type `/bootstrap` and answer 3 questions. Alfred audits what's already there, fills in what's missing, and sets up guardrails around your existing work. That's it. Start working.
 
+After `/bootstrap`, three commands cover 90% of daily use:
+
+| Command | When to use it |
+|---------|---------------|
+| `/new-work` | Starting a task — creates a branch, scopes the work |
+| `/commit` | Saving progress — checks for dangerous files first |
+| `/teach` | Curious about a habit — delivers a lesson in your domain's language |
+
+<details>
+<summary>All commands</summary>
+
+| Command | What it does |
+|---------|-------------|
+| `/bootstrap` | Picks your persona, generates CLAUDE.md, initializes tracking |
+| `/github-account-setup` | Connect to GitHub or create an account |
+| `/teach` | Next habit lesson — or `/teach all` for progress, `/teach <name>` to revisit |
+| `/status` | Graduated habits, level, next steps |
+| `/commit` | Safe commit — blocks binaries, warns on large files |
+| `/new-work` | Scoped branch with task list |
+| `/ci-fix` | Auto-fix loop: lint, format, typecheck, test until green |
+| `/self-improve` | Promote recurring corrections to permanent rules |
+| `/health-check` | Project maturity assessment (5 levels) |
+| `/safe-refactor` | One change at a time, auto-rollback on test failure |
+| `/experiment-summary` | Inventory results with provenance |
+| `/pr` | Push and open a pull request |
+| `/vet` | Pressure-test a plan before committing to it |
+| `/persona` | View or change your active persona |
+| `/collective preview` | Preview collective team corrections |
+| `/pilot-consent` | View what's collected, opt in or out |
+| `/pilot-report` | Submit feedback (PII-scrubbed) |
+| `/pilot-delete` | Delete your data locally or from the repo |
+
+</details>
+
 ---
 
-## What it teaches
+## What makes this different
 
 Alfred teaches 8 habits, one at a time, when you need them:
 
@@ -110,9 +144,17 @@ The end state: a working environment that was shaped by your own decisions — w
 
 ---
 
-## Personas
+## Power tools
 
-Your answer to "what best describes your work?" selects a persona. Each one provides guardrails, teaching analogies, directory structure, recommended tools, and error interpretations specific to your domain.
+**`/safe-refactor`** — Writes tests that capture current behavior first, then refactors one change at a time. Tests fail? Automatic rollback. No manual git recovery.
+
+**`/ci-fix`** — Loops through lint → format → typecheck → tests until green. Detects when it's stuck (same error twice) and stops instead of churning.
+
+**`/health-check`** — Assesses your project across 5 maturity levels. Recommends the highest-impact gaps to close next.
+
+---
+
+## Personas
 
 | # | Persona | Example guardrail |
 |---|---------|-------------------|
@@ -123,7 +165,25 @@ Your answer to "what best describes your work?" selects a persona. Each one prov
 | 5 | **BI Platform** | Never DROP production tables without backup |
 | 6 | **General** | Never commit .env files; run tests before pushing |
 
-Each persona translates the same 8 patterns into different language. "Safe experimentation" becomes "hyperparameter sweep in isolation" for ML, "pilot study" for research, and "copy of the report" for business analytics.
+---
+
+## For teams
+
+Alfred is per-repo. Each team member runs `/bootstrap` with their own persona and coding level — guardrails are consistent, explanations are personalized. The first member bootstraps and commits CLAUDE.md — that becomes the shared team config. Others run `/bootstrap` and choose "keep existing" to get personal onboarding with shared guardrails.
+
+**The team flywheel:**
+
+1. **Someone makes a correction.** A team member corrects Alfred: "always validate join row counts before aggregating." Alfred saves it as a feedback memory.
+2. **It becomes a team rule.** `/self-improve` promotes recurring corrections to CLAUDE.md — which lives in the repo and applies to every team member.
+3. **It gets enforced.** If the rule is still violated, the next `/self-improve` run promotes it to a pre-commit hook that blocks the mistake automatically.
+
+One person's discovery becomes everyone's guardrail.
+
+**Adoption friction is self-correcting.** If anyone finds Alfred too verbose, they say "I know" and it goes silent for that habit. No team-wide configuration needed.
+
+**Measuring adoption**: Opt-in pilot telemetry tracks which habits are graduating and which commands are used — without collecting code, file paths, or PII. Run `scripts/aggregate-pilot.sh` for a team summary. See [`.pilot/README.md`](.pilot/README.md) for the full privacy policy.
+
+**Project health**: `/health-check` gives leaders a 5-level maturity snapshot — what's in place, what's missing, what to prioritize.
 
 ---
 

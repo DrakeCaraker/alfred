@@ -54,8 +54,9 @@ No test/lint commands detected yet. Add them here as your project grows.
 | Command | Purpose |
 |---------|---------|
 | /bootstrap | Persona-aware project setup (you just ran this) |
-| /teach | Learn the next development pattern |
-| /status | See your progress and graduated patterns |
+| /github-account-setup | Connect to GitHub or create an account |
+| /teach | Learn the next development habit |
+| /status | See your progress and graduated habits |
 | /commit | Safe commit with file guards |
 | /new-work | Start scoped work on a new branch |
 | /ci-fix | Auto-fix CI failures in a loop |
@@ -75,7 +76,7 @@ No test/lint commands detected yet. Add them here as your project grows.
 
 ## Explain Gate
 
-When you encounter a slash command for a pattern you haven't graduated yet, briefly explain what it does and why before executing. Check `.claude/.onboarding-state.json` for graduation status. Once graduated, execute silently.
+When you encounter a slash command for a habit you haven't graduated yet, briefly explain what it does and why before executing. Check `.claude/.onboarding-state.json` for graduation status. Once graduated, execute silently.
 
 ## Smart Suggestions
 

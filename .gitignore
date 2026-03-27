@@ -60,3 +60,10 @@ target/
 .claude/.onboarding-state.json
 .claude/.session-bookmark.json
 .claude/.pilot-session-start
+.claude/.pilot-nudge-count
+
+# Persona state (local per-user)
+.claude/alfred-persona.yaml
+
+# Local settings (per-user overrides)
+.claude/settings.local.json

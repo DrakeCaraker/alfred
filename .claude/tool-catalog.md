@@ -1,14 +1,16 @@
 # Alfred Tool Catalog
 
-Reference mapping between slash commands, patterns, hooks, and state files.
+Reference mapping between slash commands, development habits, hooks, and state files.
+
+For habit details, see [`docs/AI_ASSISTED_DEV_GUIDE.md`](../docs/AI_ASSISTED_DEV_GUIDE.md).
 
 ## Slash Commands
 
-| Command | Pattern Taught | Description |
+| Command | Habit Taught | Description |
 |---------|---------------|-------------|
 | /bootstrap | — | Persona-aware project setup |
 | /github-account-setup | — | GitHub account check, auth, and repo creation |
-| /teach | All 8 | Progressive pattern lessons |
+| /teach | All 8 | Progressive habit lessons |
 | /status | — | Onboarding progress dashboard |
 | /commit | #3 Save points | Safe commit with file guards |
 | /new-work | #2 Scope, #4 Experimentation | Branch hygiene + scoped work |
@@ -18,6 +20,11 @@ Reference mapping between slash commands, patterns, hooks, and state files.
 | /safe-refactor | #5 One change, one test | Test-gated refactoring with rollback |
 | /experiment-summary | #7 Provenance | Result inventory with provenance |
 | /pr | — | Branch → commit → push → PR |
+| /persona | — | View or change active persona |
+| /collective | — | Preview collective team corrections |
+| /pilot-consent | — | View what's collected, opt in or out |
+| /pilot-report | — | Submit feedback (PII-scrubbed) |
+| /pilot-delete | — | Delete pilot data locally or from repo |
 
 ## Hooks
 
@@ -30,9 +37,9 @@ Reference mapping between slash commands, patterns, hooks, and state files.
 | Pre-compact | .claude/hooks/pre-compact.sh | PreCompact | Preserve context before compression |
 | Pre-push | .githooks/pre-push | git push | Block binaries + main pushes |
 
-## Pattern → External Skill Mapping
+## Habit → External Skill Mapping
 
-| Pattern | Built-in Command | External Superpowers Skill |
+| Habit | Built-in Command | External Superpowers Skill |
 |---------|-----------------|---------------------------|
 | Scope before work | /new-work | superpowers:brainstorming, superpowers:writing-plans |
 | Safe experimentation | /new-work | superpowers:using-git-worktrees |

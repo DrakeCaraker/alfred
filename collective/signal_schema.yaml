@@ -1,0 +1,39 @@
+# Collective Learning Signal Schema v1.0
+# Signals are anonymized correction patterns contributed by opt-in users
+
+schema_version: "1.0"
+
+signal:
+  category:
+    type: enum
+    values: [git_workflow, formatting, testing, code_style, safety, explanation, tooling]
+    description: "Category of the correction"
+
+  pattern:
+    type: string
+    max_length: 200
+    description: "The correction pattern — no code, paths, or identifiers"
+    example: "Never modify test files to fix failing tests"
+
+  local_occurrences:
+    type: integer
+    description: "How many times this correction was made locally"
+
+  promoted_to:
+    type: enum
+    values: [memory, rule, hook]
+    description: "What the user promoted this correction to"
+
+  project_type:
+    type: enum
+    values: [python, js, ts, rust, go, r, mixed]
+    description: "Project type where correction occurred"
+
+privacy_constraints:
+  - "No file paths"
+  - "No code snippets"
+  - "No project names"
+  - "No user identities"
+  - "No URLs"
+  - "Anonymizer runs locally before any transmission"
+  - "User can preview with /collective preview"

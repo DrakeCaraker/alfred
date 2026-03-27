@@ -1,0 +1,11 @@
+{
+  "name": "alfred",
+  "version": "0.1.0",
+  "description": "AI coding assistant that teaches development habits in your language and turns corrections into permanent rules",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DrakeCaraker/alfred.git"
+  }
+}
