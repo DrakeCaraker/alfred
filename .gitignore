@@ -66,3 +66,6 @@ target/
 
 # Onboarding state (per-user on shared repos)
 .claude/.onboarding-state.json
+
+# Local settings (per-user overrides)
+.claude/settings.local.json
