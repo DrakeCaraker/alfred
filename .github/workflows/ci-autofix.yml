@@ -1,0 +1,403 @@
+name: CI Auto-Fix
+
+# Consolidates all automated fix workflows:
+#   Job 1: fix-ci-failures  — Claude fixes CI failures on PRs
+#   Job 2: resolve-conflicts — Claude resolves merge conflicts when main updates
+#   Job 3: manual-fix        — manual dispatch for any PR
+
+on:
+  workflow_run:
+    workflows: ["Alfred CI"]
+    types: [completed]
+
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to fix'
+        required: true
+        type: number
+      task:
+        description: 'What to fix'
+        required: true
+        type: choice
+        options:
+          - 'fix-ci'
+          - 'resolve-conflicts'
+          - 'custom'
+      custom_prompt:
+        description: 'Custom prompt (only for task=custom)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Job 1: Fix CI failures on PRs using Claude
+  # ──────────────────────────────────────────────
+  fix-ci-failures:
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      vars.CLAUDE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const branch = run.data.head_branch;
+            const sha = run.data.head_sha;
+
+            // Get the commit to check author (loop protection)
+            const commit = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: sha,
+            });
+            const author = commit.data.commit.author.name;
+
+            // Find the PR for this branch
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open',
+            });
+            const prNumber = prs.data.length > 0 ? prs.data[0].number : 0;
+
+            console.log(`Branch: ${branch}, Author: ${author}, PR: #${prNumber}`);
+            return { branch, sha, author, prNumber };
+
+      - name: Loop protection — skip if last commit was by alfred-bot
+        id: guard
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = ${{ steps.pr.outputs.result }};
+            if (pr.author === 'alfred-bot') {
+              console.log('Last commit was by alfred-bot — skipping to prevent infinite loop.');
+
+              // Comment on PR about the failure
+              if (pr.prNumber > 0) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.prNumber,
+                  body: `⚠️ **CI failed after an auto-fix attempt.** Manual intervention needed.\n\nRun locally:\n\`\`\`bash\nmake fix && make check\n\`\`\`\n\nCheck the [CI logs](${context.payload.workflow_run.html_url}) for details.`,
+                });
+              }
+              return { skip: true };
+            }
+            return { skip: false };
+
+      - name: Exit if skipped
+        if: fromJSON(steps.guard.outputs.result).skip == true
+        run: |
+          echo "Skipped — loop protection triggered."
+          exit 0
+
+      - uses: actions/checkout@v4
+        if: fromJSON(steps.guard.outputs.result).skip != true
+        with:
+          ref: ${{ fromJSON(steps.pr.outputs.result).branch }}
+          fetch-depth: 0
+
+      - name: Configure git
+        if: fromJSON(steps.guard.outputs.result).skip != true
+        run: |
+          git config user.name "alfred-bot"
+          git config user.email "alfred-bot@users.noreply.github.com"
+
+      - name: Claude Code — fix CI failures
+        if: fromJSON(steps.guard.outputs.result).skip != true
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            The CI workflow failed on this branch. Read .github/workflows/ci.yml to understand the checks, then run 'make check' to reproduce failures. Fix all failures and commit the fixes.
+
+            After making changes:
+            1. Run: make check
+            2. If it passes, commit and push
+            3. If it fails, fix and retry (max 3 attempts)
+
+            Rules:
+            - After editing .claude/commands/*.md, sync to commands/
+            - Never put free-text user data in telemetry files
+            - Use "habits" not "patterns" in user-facing text
+            - You can also run 'make fix' to auto-fix deterministic issues (command sync, permissions)
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
+          timeout_minutes: 15
+
+      - name: Comment on PR if fix failed
+        if: failure() && fromJSON(steps.guard.outputs.result).skip != true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = ${{ steps.pr.outputs.result }};
+            if (pr.prNumber > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.prNumber,
+                body: `⚠️ **CI failed and Claude couldn't fix it automatically.**\n\nRun locally:\n\`\`\`bash\nmake fix && make check\n\`\`\`\n\nCheck the [CI logs](${context.payload.workflow_run.html_url}) for details.`,
+              });
+            }
+
+  # ──────────────────────────────────────────────
+  # Job 2: Resolve merge conflicts when main updates
+  # ──────────────────────────────────────────────
+  detect-conflicts:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has_conflicts: ${{ steps.detect.outputs.has_conflicts }}
+    steps:
+      - name: Detect conflicting PRs
+        id: detect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              base: 'main',
+            });
+
+            const conflicting = [];
+            for (const pr of prs.data) {
+              // Re-fetch to get mergeable status
+              const detail = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+              });
+              if (detail.data.mergeable === false) {
+                conflicting.push({
+                  number: pr.number,
+                  branch: pr.head.ref,
+                  title: pr.title,
+                });
+              }
+            }
+
+            console.log(`Found ${conflicting.length} conflicting PR(s)`);
+            const hasConflicts = conflicting.length > 0;
+            core.setOutput('has_conflicts', hasConflicts.toString());
+            core.setOutput('matrix', JSON.stringify({ include: conflicting }));
+
+  resolve-conflicts:
+    needs: detect-conflicts
+    if: >
+      needs.detect-conflicts.outputs.has_conflicts == 'true' &&
+      vars.CLAUDE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.detect-conflicts.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "alfred-bot"
+          git config user.email "alfred-bot@users.noreply.github.com"
+
+      - name: Claude Code — resolve conflicts
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            This branch (${{ matrix.branch }}) has merge conflicts with main.
+            Run 'git fetch origin main && git merge origin/main'.
+            Resolve all conflicts by understanding both sides' intent — the branch has new features, main may have updates.
+            After resolving, run 'make check' to verify everything passes, then commit and push.
+
+            After making changes:
+            1. Run: make check
+            2. If it passes, commit and push
+            3. If it fails, fix and retry (max 3 attempts)
+
+            Rules:
+            - After editing .claude/commands/*.md, sync to commands/
+            - Never put free-text user data in telemetry files
+            - Use "habits" not "patterns" in user-facing text
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
+          timeout_minutes: 15
+
+      - name: Comment on PR — success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ matrix.number }},
+              body: '✅ **Merge conflicts auto-resolved by Claude.**\n\nPlease review the merge commit to verify correctness.',
+            });
+
+      - name: Comment on PR — failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ matrix.number }},
+              body: `⚠️ **Merge conflicts could not be auto-resolved.**\n\nPlease resolve manually:\n\`\`\`bash\ngit fetch origin main\ngit merge origin/main\n# resolve conflicts\nmake check\ngit commit\ngit push\n\`\`\``,
+            });
+
+  # ──────────────────────────────────────────────
+  # Job 3: Manual dispatch for any PR
+  # ──────────────────────────────────────────────
+  manual-fix:
+    if: github.event_name == 'workflow_dispatch' && vars.CLAUDE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR branch
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ inputs.pr_number }},
+            });
+            return { branch: pr.data.head.ref };
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(steps.pr.outputs.result).branch }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "alfred-bot"
+          git config user.email "alfred-bot@users.noreply.github.com"
+
+      - name: Build prompt
+        id: prompt
+        run: |
+          case "${{ inputs.task }}" in
+            fix-ci)
+              echo "prompt=The CI workflow failed on this branch. Read .github/workflows/ci.yml to understand the checks, then run 'make check' to reproduce failures. Fix all failures and commit the fixes. Do not change test expectations — fix the code to pass the existing tests." >> "$GITHUB_OUTPUT"
+              ;;
+            resolve-conflicts)
+              echo "prompt=This branch has merge conflicts with main. Run 'git fetch origin main && git merge origin/main'. Resolve all conflicts by understanding both sides' intent. After resolving, run 'make check' to verify, and commit the merge." >> "$GITHUB_OUTPUT"
+              ;;
+            custom)
+              echo "prompt=${{ inputs.custom_prompt }}" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Claude Code — fix
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            ${{ steps.prompt.outputs.prompt }}
+
+            After making changes:
+            1. Run: make check
+            2. If it passes, commit and push
+            3. If it fails, fix and retry (max 3 attempts)
+
+            Rules:
+            - After editing .claude/commands/*.md, sync to commands/
+            - Never put free-text user data in telemetry files
+            - Use "habits" not "patterns" in user-facing text
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
+          timeout_minutes: 15
+
+      - name: Comment on PR
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr_number }},
+              body: '✅ **Claude Code fixed this PR.**\n\nTask: `${{ inputs.task }}`\n\nPlease review the changes before merging.',
+            });
+
+      - name: Comment on PR — failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr_number }},
+              body: `⚠️ **Claude couldn't fix this PR automatically.**\n\nTask: \`${{ inputs.task }}\`\n\nRun locally:\n\`\`\`bash\nmake fix && make check\n\`\`\``,
+            });
+
+  # ──────────────────────────────────────────────
+  # Fallback: Comment if Claude is not enabled
+  # ──────────────────────────────────────────────
+  notify-unavailable:
+    if: >
+      vars.CLAUDE_ENABLED != 'true' && (
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request') ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR number
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === 'workflow_dispatch') {
+              return { prNumber: ${{ inputs.pr_number || 0 }} };
+            }
+            // For workflow_run, find the PR
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const branch = run.data.head_branch;
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open',
+            });
+            return { prNumber: prs.data.length > 0 ? prs.data[0].number : 0 };
+
+      - name: Comment — auto-fix unavailable
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = ${{ steps.pr.outputs.result }};
+            if (pr.prNumber > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.prNumber,
+                body: `ℹ️ **Auto-fix is not enabled.** Set \`CLAUDE_ENABLED=true\` repo variable and add \`ANTHROPIC_API_KEY\` secret to enable.\n\nFix locally:\n\`\`\`bash\nmake fix && make check\n\`\`\``,
+              });
+            }
