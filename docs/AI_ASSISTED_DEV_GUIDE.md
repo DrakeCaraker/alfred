@@ -1,10 +1,12 @@
 # AI-Assisted Development Guide
 
-A comprehensive reference for how Alfred works, the patterns it teaches, and how to customize it.
+A comprehensive reference for how Alfred works, the habits it teaches, and how to customize it.
+
+See the [README](../README.md) for quick start and positioning.
 
 ## Overview
 
-Alfred is a self-automating onboarding system for Claude Code. It teaches 8 development patterns progressively, adapting to your role and skill level. The system explains itself as you work, then gradually goes silent as you demonstrate understanding.
+Alfred is an AI coding assistant that teaches development habits in your domain's language and turns corrections into permanent rules. It teaches 8 development patterns progressively, adapting to your role and skill level. The system explains itself as you work, then gradually goes silent as you demonstrate understanding.
 
 ## The 8 Development Patterns
 

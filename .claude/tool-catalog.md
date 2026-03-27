@@ -1,6 +1,8 @@
 # Alfred Tool Catalog
 
-Reference mapping between slash commands, patterns, hooks, and state files.
+Reference mapping between slash commands, development habits, hooks, and state files.
+
+For habit details, see [`docs/AI_ASSISTED_DEV_GUIDE.md`](../docs/AI_ASSISTED_DEV_GUIDE.md).
 
 ## Slash Commands
 
@@ -17,6 +19,11 @@ Reference mapping between slash commands, patterns, hooks, and state files.
 | /safe-refactor | #5 One change, one test | Test-gated refactoring with rollback |
 | /experiment-summary | #7 Provenance | Result inventory with provenance |
 | /pr | — | Branch → commit → push → PR |
+| /persona | — | View or change active persona |
+| /collective | — | Preview collective team corrections |
+| /pilot-consent | — | View what's collected, opt in or out |
+| /pilot-report | — | Submit feedback (PII-scrubbed) |
+| /pilot-delete | — | Delete pilot data locally or from repo |
 
 ## Hooks
 

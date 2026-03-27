@@ -63,3 +63,6 @@ target/
 
 # Persona state (local per-user)
 .claude/alfred-persona.yaml
+
+# Onboarding state (per-user on shared repos)
+.claude/.onboarding-state.json

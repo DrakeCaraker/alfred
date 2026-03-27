@@ -1,6 +1,13 @@
 # Alfred
 
-Alfred sets up Claude Code for your project. You answer two questions — what you do and how much you code — and it generates a tailored environment with guardrails, automation, and progressive teaching that adapts to you.
+Development habits that stick — taught in your language, enforced automatically.
+
+Alfred wraps Claude Code with progressive teaching, domain-specific guardrails,
+and a self-improvement loop that turns your corrections into permanent rules.
+
+## Install + Demo
+
+Setup takes 2 minutes. You answer 3 questions, Alfred does the rest.
 
 ```bash
 git clone https://github.com/DrakeCaraker/alfred.git my-project
@@ -10,11 +17,11 @@ cd my-project && claude
 ```
 > /bootstrap
 
-What best describes your work?  1
-How comfortable are you with coding?  2
-Describe your project:  quarterly revenue forecasting model
+What kind of work do you mainly do?  1
+How comfortable are you with coding and version control?  2
+In one sentence, what are you working on?  quarterly revenue forecasting model
 
-Done. CLAUDE.md generated, guardrails active, 0/8 patterns learned.
+Done. CLAUDE.md generated, guardrails active, 0/8 habits learned.
 Start working — I'll explain things as they come up.
 ```
 
@@ -22,25 +29,15 @@ That's it. Start working.
 
 ---
 
-## Why
-
-Most people fail at AI-assisted development not because the AI is bad, but because the surrounding habits aren't there — scoping work before starting, committing frequently, isolating experiments on branches, tracing results to source code. These habits are simple but easy to skip, and skipping them is how you end up with half-finished work on main, lost changes, and results nobody can reproduce.
-
-Alfred teaches these habits using language you already understand. An ML scientist hears "think of commits as experiment checkpoints." A business analyst hears "saving a version of the spreadsheet." A researcher hears "signing a lab notebook page." Same concept, different framing — because the framing is what makes it stick.
-
-Then it shuts up. Once you've seen a concept three times without asking "why?", Alfred stops explaining and just does it. Advanced users start in silent mode from day one.
-
----
-
 ## Get started
 
-After `/bootstrap`, three commands cover most of what you need:
+After `/bootstrap`, three commands cover 90% of daily use:
 
 | Command | When to use it |
 |---------|---------------|
 | `/new-work` | Starting a task — creates a branch, scopes the work |
 | `/commit` | Saving progress — checks for dangerous files first |
-| `/teach` | Curious about a pattern — delivers a lesson in your domain's language |
+| `/teach` | Curious about a habit — delivers a lesson in your domain's language |
 
 Everything else is available but not required upfront:
 
@@ -50,8 +47,8 @@ Everything else is available but not required upfront:
 | Command | What it does |
 |---------|-------------|
 | `/bootstrap` | Picks your persona, generates CLAUDE.md, initializes tracking |
-| `/teach` | Next pattern lesson — or `/teach all` for progress, `/teach <name>` to revisit |
-| `/status` | Graduated patterns, level, next steps |
+| `/teach` | Next habit lesson — or `/teach all` for progress, `/teach <name>` to revisit |
+| `/status` | Graduated habits, level, next steps |
 | `/commit` | Safe commit — blocks binaries, warns on large files |
 | `/new-work` | Scoped branch with task list |
 | `/ci-fix` | Auto-fix loop: lint, format, typecheck, test until green |
@@ -60,53 +57,52 @@ Everything else is available but not required upfront:
 | `/safe-refactor` | One change at a time, auto-rollback on test failure |
 | `/experiment-summary` | Inventory results with provenance |
 | `/pr` | Push and open a pull request |
+| `/persona` | View or change your active persona |
+| `/collective preview` | Preview collective team corrections |
+| `/pilot-consent` | View what's collected, opt in or out |
+| `/pilot-report` | Submit feedback (PII-scrubbed) |
+| `/pilot-delete` | Delete your data locally or from the repo |
 
 </details>
 
 ---
 
-## What it teaches
+## What makes this different
 
-Alfred teaches 8 patterns — the habits that make AI-assisted development work. They're taught in order, one at a time, as you encounter the situations where they matter.
+### It speaks your language
 
-**1. Context before action** — Check where you are before you start. The session-start hook does this automatically.
+You pick a domain — ML/DS, Research, Analytics, BI, or General — and Alfred adapts everything: guardrails, teaching, directory structure, tools. An ML scientist hears "think of commits as experiment checkpoints." A business analyst hears "saving a version of the spreadsheet." A researcher hears "signing a lab notebook page." Same concept, different framing — because the framing is what makes it stick.
 
-**2. Scope before work** — Name what you're doing and create a branch before writing code. `/new-work`
+### Your corrections become permanent
 
-**3. Save points** — Commit frequently. `/commit` adds safety checks.
-
-**4. Safe experimentation** — Use branches to try things. If it works, merge. If not, delete.
-
-**5. One change, one test** — Change one thing, test, commit or rollback. `/safe-refactor`
-
-**6. Automated recovery** — Let the machine fix lint and format errors. `/ci-fix`
-
-**7. Provenance** — Every result traces to the code that produced it. `/experiment-summary`
-
-**8. Self-improvement** — The system learns from your corrections. `/self-improve`
-
-Run `/teach` to learn the next one. Run `/status` to see which you've graduated.
-
----
-
-## How it adapts
-
-**Explains, then stops.** The first time you run `/commit`, Alfred explains what a save point is using your domain's analogy. The third time, it goes silent. If you ever say "I know" or "skip," it graduates you immediately.
-
-**Learns from corrections.** When you say "no, don't do that," Alfred saves a feedback memory. If the same correction comes up repeatedly, `/self-improve` promotes it to a permanent rule in CLAUDE.md — or even an automated hook that prevents the mistake entirely.
+Other AI tools forget when you close the tab. Alfred saves corrections as feedback memories. Run `/self-improve` and recurring corrections become permanent rules. Rules that still get violated become automated hooks that block the mistake entirely.
 
 ```
 Feedback memory  →  CLAUDE.md rule  →  Automated hook
-(soft, one session)  (durable, every session)  (enforced, blocks the action)
+(soft, one session)    (durable)         (enforced)
 ```
 
-**Resumes across sessions.** When a session ends, Alfred bookmarks what you were working on. Next session, it picks up where you left off.
+You tell Alfred "don't commit .env files" twice. `/self-improve` adds a pre-commit guard. You never say it again.
+
+### It gets out of your way
+
+Alfred teaches 8 development habits, one at a time, as you encounter the situations where they matter. After three exposures, it stops explaining and just does it. Say "I know" and it graduates you immediately. Advanced users start in silent mode from day one.
+
+The habits span the full cycle — from checking context before starting, through safe commits and branch isolation, to automated CI recovery and turning your own corrections into team-wide rules. Run `/teach` to learn the next one. `/status` shows your progress.
+
+---
+
+## Power tools
+
+**`/safe-refactor`** — Writes tests that capture current behavior first, then refactors one change at a time. Tests fail? Automatic rollback. No manual git recovery.
+
+**`/ci-fix`** — Loops through lint → format → typecheck → tests until green. Detects when it's stuck (same error twice) and stops instead of churning.
+
+**`/health-check`** — Assesses your project across 5 maturity levels. Recommends the highest-impact gaps to close next.
 
 ---
 
 ## Personas
-
-Your answer to "what best describes your work?" selects a persona. Each one provides guardrails, teaching analogies, directory structure, recommended tools, and error interpretations specific to your domain.
 
 | # | Persona | Example guardrail |
 |---|---------|-------------------|
@@ -117,7 +113,25 @@ Your answer to "what best describes your work?" selects a persona. Each one prov
 | 5 | **BI Platform** | Never DROP production tables without backup |
 | 6 | **General** | Never commit .env files; run tests before pushing |
 
-Each persona translates the same 8 patterns into different language. "Safe experimentation" becomes "hyperparameter sweep in isolation" for ML, "pilot study" for research, and "copy of the report" for business analytics.
+---
+
+## For teams
+
+Alfred is per-repo. Each team member runs `/bootstrap` with their own persona and coding level — guardrails are consistent, explanations are personalized.
+
+**The team flywheel:**
+
+1. **Someone discovers a pattern.** A team member corrects Alfred: "always validate join row counts before aggregating." Alfred saves it as a feedback memory.
+2. **It becomes a team rule.** `/self-improve` promotes recurring corrections to CLAUDE.md — which lives in the repo and applies to every team member.
+3. **It gets enforced.** If the rule is still violated, the next `/self-improve` run promotes it to a pre-commit hook that blocks the mistake automatically.
+
+One person's discovery becomes everyone's guardrail.
+
+**Adoption friction is self-correcting.** If anyone finds Alfred too verbose, they say "I know" and it goes silent for that habit. No team-wide configuration needed.
+
+**Measuring adoption**: Opt-in pilot telemetry tracks which habits are graduating and which commands are used — without collecting code, file paths, or PII. Run `scripts/aggregate-pilot.sh` for a team summary. See [`.pilot/README.md`](.pilot/README.md) for the full privacy policy.
+
+**Project health**: `/health-check` gives leaders a 5-level maturity snapshot — what's in place, what's missing, what to prioritize.
 
 ---
 
@@ -129,11 +143,7 @@ Activate the pre-push hook after cloning (blocks binaries and direct pushes to m
 git config core.hooksPath .githooks
 ```
 
-Alfred also installs these hooks via `.claude/settings.json`:
-- **Format on write** — auto-formats Python, JS/TS, Go, Rust, R, SQL after every edit
-- **Session start** — git status, branch safety, onboarding progress, session resume
-- **Session end** — bookmarks your task context and captures feedback
-- **Pre-compact** — preserves critical context before conversation compression
+This activates branch protection, binary blocking, and PII scanning. Format-on-write, session bookmarks, and feedback capture run automatically via `.claude/settings.json`.
 
 ---
 

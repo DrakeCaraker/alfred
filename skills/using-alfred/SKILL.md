@@ -5,28 +5,30 @@ description: Use when starting any session with Alfred installed to orient the u
 
 # Using Alfred
 
-Alfred is a progressive development onboarding system. It teaches development patterns through hands-on practice, adapts to your persona, and learns from your corrections.
+Alfred teaches development habits in your domain's language and turns your corrections into permanent infrastructure.
 
 ## Quick Start
 
 If you haven't bootstrapped yet:
 1. Run `/bootstrap` — answers 3 questions, picks your persona, generates CLAUDE.md
-2. Run `/teach` — learn your first development pattern
+2. Run `/teach` — learn your first development habit
 3. Run `/status` — check your progress
+
+Bootstrap takes ~2 minutes. Each `/teach` lesson takes ~2 minutes. Full graduation typically happens within 10-15 sessions of real work.
 
 ## Core Commands
 
 | Command | Purpose |
 |---------|---------|
 | `/bootstrap` | One-time project setup with persona selection |
-| `/teach` | Learn the next development pattern |
+| `/teach` | Learn the next development habit |
 | `/status` | View onboarding progress |
 | `/new-work` | Start scoped work on a feature branch |
 | `/commit` | Safe commit with file guards |
 | `/pr` | Branch → commit → push → PR workflow |
 | `/ci-fix` | Auto-fix CI failures in a loop |
 | `/safe-refactor` | Test-gated refactoring with rollback |
-| `/self-improve` | Promote feedback patterns to rules/hooks |
+| `/self-improve` | Promote feedback to rules/hooks |
 | `/health-check` | Assess project maturity (5 levels) |
 | `/experiment-summary` | Inventory results with provenance |
 
@@ -39,6 +41,6 @@ Alfred includes opt-in, privacy-first telemetry for pilot testers:
 
 ## How It Works
 
-Alfred teaches 8 patterns in order, adapting explanations to your persona (ML/DS, research, business analytics, etc.). As you use it, corrections are captured as feedback memories. The `/self-improve` command promotes recurring corrections into persistent rules or hooks.
+Run `/status` to see progress. Run `/self-improve` to promote corrections into permanent rules.
 
 Session hooks handle warm-up (git status, drift check, onboarding nudge) and wind-down (bookmarking, feedback capture, telemetry).

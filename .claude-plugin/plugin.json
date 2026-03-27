@@ -1,6 +1,6 @@
 {
   "name": "alfred",
-  "description": "AI-assisted development system with progressive onboarding, feedback-driven learning, and privacy-first pilot telemetry",
+  "description": "AI coding assistant that teaches development habits in your domain's language, then turns your corrections into permanent rules and automated guards.",
   "version": "0.1.0",
   "author": {
     "name": "Drake Caraker",
@@ -10,10 +10,12 @@
   "repository": "https://github.com/DrakeCaraker/alfred",
   "license": "MIT",
   "keywords": [
+    "claude-code",
+    "ai-development",
+    "code-quality",
+    "guardrails",
     "onboarding",
-    "development-patterns",
-    "feedback-learning",
-    "personas",
-    "telemetry"
+    "data-science",
+    "ml-ops"
   ]
 }

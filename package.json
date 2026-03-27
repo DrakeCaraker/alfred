@@ -1,7 +1,7 @@
 {
   "name": "alfred",
   "version": "0.1.0",
-  "description": "AI-assisted development system with progressive onboarding and feedback-driven learning",
+  "description": "AI coding assistant that teaches development habits in your language and turns corrections into permanent rules",
   "type": "module",
   "license": "MIT",
   "repository": {

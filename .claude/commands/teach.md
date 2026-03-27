@@ -1,4 +1,4 @@
-# Alfred Teach — Progressive Pattern Engine
+# Alfred Teach — Progressive Habit Engine
 
 Teach development patterns one at a time, using domain-specific analogies. Each lesson has 4 phases: Context, Demo, Install, Verify.
 

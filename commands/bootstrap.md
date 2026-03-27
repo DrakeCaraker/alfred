@@ -20,23 +20,32 @@ If not a git repo, initialize: `git init`
 
 ## Step 2: Ask questions
 
-Ask these questions one at a time, waiting for each answer before proceeding.
+Start with a brief welcome, then ask these questions **one at a time**. Show only one question per message. Do NOT combine questions or show the next question until the user has answered the current one. Wait for the user to respond before moving on.
+
+**Welcome preamble** (show before Question 1):
+```
+I'm going to ask you three quick questions so I can set things up for you.
+There are no wrong answers — just pick whatever feels closest. You can
+always change these later.
+```
 
 ### Question 1: Role
 
-```
-What best describes your work?
+**Why we're asking**: Alfred uses your answer to choose the right language when explaining things. For example, if you work with data models, it'll use terms you already know instead of generic software jargon.
 
-1. ML / Data Science — model development, experiments, pipelines
-2. Research — academic papers, statistical analysis, reproducibility
-3. Business Analytics — dashboards, reports, SQL, ad-hoc analysis
-4. Product Analytics — A/B tests, funnels, user behavior
-5. BI Platform — data modeling, warehouse, dbt, data quality
-6. General — software development, not domain-specific
-7. Something else (describe)
+```
+What kind of work do you mainly do?
+
+1. ML / Data Science — training models, running experiments, building pipelines
+2. Research — writing papers, statistical analysis, making results reproducible
+3. Business Analytics — building dashboards, writing reports, SQL queries
+4. Product Analytics — A/B tests, funnels, understanding user behavior
+5. BI / Data Platform — data warehouses, dbt, data quality engineering
+6. General software dev — building apps, APIs, or tools (not data-specific)
+7. Something else — just describe it and I'll figure out the best fit
 ```
 
-For option 7: infer the closest persona from the user's description.
+For option 7: infer the closest persona from the user's description. Confirm: "That sounds closest to [persona]. I'll use that — let me know if that doesn't feel right."
 
 Map answers to persona files:
 - 1 → `.claude/personas/ml-ds.md`
@@ -48,12 +57,14 @@ Map answers to persona files:
 
 ### Question 2: Coding comfort
 
-```
-How comfortable are you with coding and version control?
+**Why we're asking**: This controls how much Alfred explains along the way. Pick "beginner" and you'll get more context with each step. Pick "advanced" and Alfred stays out of your way.
 
-1. Beginner — learning to code, mostly notebooks or spreadsheets
-2. Intermediate — write code regularly, basic git usage
-3. Advanced — branches, CI, hooks, automated testing
+```
+How comfortable are you with coding and version control (things like git)?
+
+1. Getting started — I'm learning, and mostly use notebooks or spreadsheets
+2. Comfortable — I write code regularly and know the basics of git
+3. Very comfortable — I use branches, CI pipelines, and automated testing
 ```
 
 Map to coding_level: 1→"beginner", 2→"intermediate", 3→"advanced"
@@ -61,8 +72,13 @@ Map to code_complexity_level: 1→1, 2→2, 3→3
 
 ### Question 3: Project description
 
+**Why we're asking**: This becomes the title of your project's instruction file. Alfred reads it at the start of every session to stay oriented on what you're building.
+
 ```
-Describe your project in one sentence (this goes in your CLAUDE.md):
+In one sentence, what are you working on?
+
+For example: "A dashboard that tracks weekly engagement metrics"
+or "Training a sleep staging model on accelerometer data"
 ```
 
 ## Step 3: Read persona
@@ -236,24 +252,27 @@ Display a welcome message tailored to the coding level:
 
 **Beginner**:
 ```
-Alfred is set up! Here's what just happened:
-- Created your CLAUDE.md with [persona] guardrails
-- Set up [N] directories for your project
-- Initialized onboarding tracking (0/8 patterns learned)
+You're all set! Here's what I just did:
 
-The system will explain things as you work. Your first step:
-→ Run /teach to learn your first development pattern
+- Created a CLAUDE.md file — this is like a cheat sheet that tells me
+  about your project and how to help you. You can read or edit it anytime.
+- Set up [N] folders to organize your work
+- Turned on a learning system that will teach you [persona]-friendly
+  development habits as you go (0/8 habits learned so far)
 
-Or just start working — I'll explain things as they come up.
+What to do next:
+  /teach — learn your first development habit (takes ~2 minutes)
+
+Or just start working on your project. I'll explain things as they come up.
 ```
 
 **Intermediate**:
 ```
 Alfred is set up for [persona] development.
 - CLAUDE.md generated with domain-specific guardrails
-- Onboarding tracking initialized (0/8 patterns)
+- Onboarding tracking initialized (0/8 habits)
 
-Start working — patterns are explained as you encounter them.
+Start working — habits are explained as you encounter them.
 Or run /teach to learn proactively, /status to see progress.
 ```
 
@@ -261,7 +280,7 @@ Or run /teach to learn proactively, /status to see progress.
 ```
 Alfred is set up for [persona] development.
 - CLAUDE.md generated with domain-specific guardrails
-- All 8 patterns in auto-mode (no explanations unless you ask)
+- All 8 habits in auto-mode (no explanations unless you ask)
 
 Available: /status, /health-check, /self-improve, /teach <pattern>
 ```
@@ -273,6 +292,6 @@ Available: /status, /health-check, /self-improve, /teach <pattern>
 - Always create the onboarding state file — /teach and /status depend on it.
 - If git is not initialized, initialize it before doing anything else.
 - Show what was created before finishing (files, directories, state).
-- Ask questions one at a time. Wait for each answer before continuing.
+- Ask questions ONE AT A TIME. Show only one question per message. Wait for the user's answer before showing the next question. Never combine or batch questions.
 - If a persona file is missing, fall back to general.md.
 - Always use the exact JSON schema above for onboarding state — other commands parse it.
