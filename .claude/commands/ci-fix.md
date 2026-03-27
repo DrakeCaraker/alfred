@@ -4,7 +4,14 @@ Autonomously fix CI failures in a loop until all checks pass or a stop condition
 
 ## Step 0: Detect Project Tooling
 
-Before starting the loop, detect the project's build system and construct commands:
+Before starting the loop, check `.claude/alfred.yaml` first. If it exists and has CI/testing config, use those commands directly:
+- `ci.lint_command` → lint step
+- `ci.typecheck_command` → typecheck step
+- `testing.command` → test step
+- `testing.fast_command` → fast test step (preferred in loop)
+- `formatting.tool` → format check step (e.g., ruff → `ruff format --check .`)
+
+If alfred.yaml is missing or incomplete, fall back to auto-detection:
 
 1. **Makefile** with lint/fmt/test targets → use `make lint`, `make fmt-check`, `make typecheck`, `make test-fast`
 2. **package.json** with scripts → use `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm test`

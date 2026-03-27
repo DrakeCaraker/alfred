@@ -1,9 +1,41 @@
 #!/usr/bin/env bash
 # PostToolUse hook: auto-format files after Write|Edit
 # Reads tool input JSON from stdin to get the file path
+# Reads formatting.tool from .claude/alfred.yaml if available
 
 f=$(jq -r '.tool_input.file_path // empty')
 [ -z "$f" ] && exit 0
+
+# Read preferred formatter from alfred.yaml (if configured)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+preferred=$("$REPO_ROOT/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
+
+# If a specific formatter is configured, use it directly
+if [ "$preferred" != "auto" ] && [ "$preferred" != "none" ]; then
+    case "$preferred" in
+        ruff)
+            [[ "$f" == *.py ]] && command -v ruff >/dev/null 2>&1 && { ruff format "$f" 2>/dev/null; exit 0; }
+            ;;
+        black)
+            [[ "$f" == *.py ]] && command -v black >/dev/null 2>&1 && { black -q "$f" 2>/dev/null; exit 0; }
+            ;;
+        prettier)
+            [[ "$f" =~ \.(js|ts|jsx|tsx|css|json|md)$ ]] && command -v prettier >/dev/null 2>&1 && { prettier --write "$f" 2>/dev/null; exit 0; }
+            ;;
+        gofmt)
+            [[ "$f" == *.go ]] && command -v gofmt >/dev/null 2>&1 && { gofmt -w "$f" 2>/dev/null; exit 0; }
+            ;;
+        rustfmt)
+            [[ "$f" == *.rs ]] && command -v rustfmt >/dev/null 2>&1 && { rustfmt "$f" 2>/dev/null; exit 0; }
+            ;;
+        none)
+            exit 0
+            ;;
+    esac
+fi
+
+# Auto-detect by file extension (fallback when no alfred.yaml or tool=auto)
 
 # Python: prefer ruff, fall back to black
 if [[ "$f" == *.py ]]; then

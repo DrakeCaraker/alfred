@@ -4,6 +4,11 @@
 
 echo "=== Alfred Session Warm-Up ===" >&2
 
+# Read configured main branch from alfred.yaml (default: main)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+MAIN_BRANCH=$("$REPO_ROOT/scripts/alfred-config.sh" git.main_branch main 2>/dev/null)
+
 # 1. Git status — uncommitted changes
 dirty=$(git status --porcelain 2>/dev/null | head -20)
 if [ -n "$dirty" ]; then
@@ -18,25 +23,25 @@ fi
 
 # 2. Branch safety check (/new-work guard)
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-if [ "$branch" = "main" ]; then
+if [ "$branch" = "$MAIN_BRANCH" ]; then
     echo "" >&2
-    echo "WARNING: You are on main. Create a feature branch before making changes:" >&2
+    echo "WARNING: You are on $MAIN_BRANCH. Create a feature branch before making changes:" >&2
     echo "  git checkout -b feat/<topic>" >&2
     echo "  Or run /new-work to set up a new task." >&2
 fi
 
 # 3. Branch drift check
-if [ "$branch" != "main" ] && [ "$branch" != "HEAD" ]; then
-    git fetch origin main --quiet 2>/dev/null
-    if git rev-parse origin/main >/dev/null 2>&1; then
-        behind=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+if [ "$branch" != "$MAIN_BRANCH" ] && [ "$branch" != "HEAD" ]; then
+    git fetch origin "$MAIN_BRANCH" --quiet 2>/dev/null
+    if git rev-parse "origin/$MAIN_BRANCH" >/dev/null 2>&1; then
+        behind=$(git rev-list --count "HEAD..origin/$MAIN_BRANCH" 2>/dev/null || echo 0)
         if [ "$behind" -gt 0 ]; then
             echo "" >&2
-            echo "Drift: branch '$branch' is $behind commit(s) behind origin/main" >&2
-            echo "  Rebase before pushing: git rebase origin/main" >&2
+            echo "Drift: branch '$branch' is $behind commit(s) behind origin/$MAIN_BRANCH" >&2
+            echo "  Rebase before pushing: git rebase origin/$MAIN_BRANCH" >&2
         else
             echo "" >&2
-            echo "Drift: up to date with origin/main" >&2
+            echo "Drift: up to date with origin/$MAIN_BRANCH" >&2
         fi
     fi
 fi

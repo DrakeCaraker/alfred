@@ -3,7 +3,7 @@
 Before committing, run these safety checks:
 
 1. Run `git status` to see staged and unstaged changes
-2. Check for .pkl files in staged changes: `git diff --cached --name-only | grep -E '\.pkl$'`
+2. Check for blocked file extensions in staged changes. Read blocked extensions from `.claude/alfred.yaml` (`blocked_extensions` field) if available; otherwise default to `.pkl`. Run: `git diff --cached --name-only | grep -E '\.(pkl|pt|pth|h5|joblib|ckpt|safetensors)$'`
    - If any match, **STOP** and warn the user. Do not commit.
 3. Check for large files (>500KB) in staged changes:
    ```
