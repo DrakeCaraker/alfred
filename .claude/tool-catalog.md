@@ -9,6 +9,7 @@ For habit details, see [`docs/AI_ASSISTED_DEV_GUIDE.md`](../docs/AI_ASSISTED_DEV
 | Command | Habit Taught | Description |
 |---------|---------------|-------------|
 | /bootstrap | — | Persona-aware project setup |
+| /github-account-setup | — | GitHub account check, auth, and repo creation |
 | /teach | All 8 | Progressive habit lessons |
 | /status | — | Onboarding progress dashboard |
 | /commit | #3 Save points | Safe commit with file guards |

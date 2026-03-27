@@ -35,13 +35,26 @@ Habit names (for direct access):
 
 ## Step 2: Deliver the lesson (4 phases)
 
+### Beginner adaptation
+
+If `coding_level == "beginner"` in onboarding state, apply these rules throughout ALL phases:
+
+1. **Define terms before using them.** The first time you use a technical word (commit, branch, staging, diff, hook, remote, merge), give a one-sentence plain-language definition in parentheses. Example: "This creates a commit (a saved snapshot of your work, like pressing Save in a video game)."
+2. **Show, don't tell.** In Phase B, run the actual commands and walk through the output line by line. Don't just describe what would happen.
+3. **Use simplified verification prompts.** See the beginner alternatives in the Phase D table below.
+4. **Reassure.** End each phase with: "You can always ask 'what does that mean?' if anything is unclear."
+
 ### Phase A — CONTEXT ("Why this matters to YOUR work")
 
 Use the persona's analogy for this pattern. Frame it in the user's domain language.
 
+**For beginners**: Before the analogy, add one sentence that names the *problem* this pattern prevents, in concrete terms. Example: "Without this, you might lose an hour of work because you forgot to save — or accidentally break something that was working."
+
 Format:
 ```
 ## Habit [N]: [Name]
+
+[For beginners only: one sentence naming the concrete problem this prevents]
 
 [Persona analogy from the Analogy Map — the full text, not abbreviated]
 
@@ -90,6 +103,19 @@ Give the user a specific, concrete thing to try:
 | 6 | automated_recovery | "Intentionally add a lint error (e.g., an unused import) and run /ci-fix to watch it fix itself." |
 | 7 | provenance | "Run /experiment-summary on any result files in your project (or note there are none yet)." |
 | 8 | self_improvement | "Run /self-improve to see if any feedback has accumulated (it's fine if there's nothing yet)." |
+
+**Beginner alternative prompts** — use these instead when `coding_level == "beginner"`:
+
+| # | Pattern | Beginner practice prompt |
+|---|---------|------------------------|
+| 1 | context_before_action | "Look at the warm-up message that appeared when this session started. Can you tell me: are there any unsaved changes? Don't worry about getting it exactly right." |
+| 2 | scope_before_work | "Think of one small thing you'd like to add or change in your project. Tell me what it is, and I'll walk you through /new-work together." |
+| 3 | save_points | "Let's save your work together. I'll walk you through /commit step by step — just follow along." |
+| 4 | safe_experimentation | "I'll create a test workspace, make a small change, then throw it away. Watch what happens — nothing breaks." |
+| 5 | one_change_one_test | "Let's look at one piece of your code together. I'll describe what /safe-refactor would check before changing it." |
+| 6 | automated_recovery | "I'll introduce a tiny mistake on purpose, then we'll watch /ci-fix find and fix it automatically." |
+| 7 | provenance | "Let's look at your results/ folder together. I'll show you how /experiment-summary connects each result to the code that created it." |
+| 8 | self_improvement | "Let's check if the system has learned anything from our conversations. Run /self-improve and I'll explain what it finds." |
 
 After the user completes the practice (or says they understand, or says "skip"):
 - Proceed to Step 3

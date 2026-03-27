@@ -9,51 +9,78 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 MAIN_BRANCH=$("$REPO_ROOT/scripts/alfred-config.sh" git.main_branch main 2>/dev/null)
 
+# Detect coding level for beginner-friendly output
+state_file=".claude/.onboarding-state.json"
+coding_level="intermediate"
+if [ -f "$state_file" ]; then
+    coding_level=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('coding_level','intermediate'))" 2>/dev/null || echo "intermediate")
+fi
+
 # 1. Git status — uncommitted changes
 dirty=$(git status --porcelain 2>/dev/null | head -20)
 if [ -n "$dirty" ]; then
     count=$(echo "$dirty" | wc -l)
     echo "" >&2
-    echo "Git: $count uncommitted change(s):" >&2
-    echo "$dirty" >&2
+    if [ "$coding_level" = "beginner" ]; then
+        echo "You have $count unsaved change(s) from last time." >&2
+        echo "  (These are files you edited but haven't committed yet.)" >&2
+        echo "  Run /commit when you're ready to save them." >&2
+    else
+        echo "Git: $count uncommitted change(s):" >&2
+        echo "$dirty" >&2
+    fi
 else
     echo "" >&2
-    echo "Git: working tree clean" >&2
+    if [ "$coding_level" = "beginner" ]; then
+        echo "All your work is saved. Clean slate!" >&2
+    else
+        echo "Git: working tree clean" >&2
+    fi
 fi
 
 # 2. Branch safety check (/new-work guard)
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 if [ "$branch" = "$MAIN_BRANCH" ]; then
     echo "" >&2
-    echo "WARNING: You are on $MAIN_BRANCH. Create a feature branch before making changes:" >&2
-    echo "  git checkout -b feat/<topic>" >&2
-    echo "  Or run /new-work to set up a new task." >&2
+    if [ "$coding_level" = "beginner" ]; then
+        echo "NOTE: You're on the '$MAIN_BRANCH' branch — that's the official copy of your project." >&2
+        echo "  Before making changes, run /new-work to create a safe workspace." >&2
+        echo "  (This keeps your original safe while you experiment.)" >&2
+    else
+        echo "WARNING: You are on $MAIN_BRANCH. Create a feature branch before making changes:" >&2
+        echo "  git checkout -b feat/<topic>" >&2
+        echo "  Or run /new-work to set up a new task." >&2
+    fi
 fi
 
-# 3. Branch drift check
-if [ "$branch" != "$MAIN_BRANCH" ] && [ "$branch" != "HEAD" ]; then
-    git fetch origin "$MAIN_BRANCH" --quiet 2>/dev/null
-    if git rev-parse "origin/$MAIN_BRANCH" >/dev/null 2>&1; then
-        behind=$(git rev-list --count "HEAD..origin/$MAIN_BRANCH" 2>/dev/null || echo 0)
-        if [ "$behind" -gt 0 ]; then
-            echo "" >&2
-            echo "Drift: branch '$branch' is $behind commit(s) behind origin/$MAIN_BRANCH" >&2
-            echo "  Rebase before pushing: git rebase origin/$MAIN_BRANCH" >&2
-        else
-            echo "" >&2
-            echo "Drift: up to date with origin/$MAIN_BRANCH" >&2
+# 3. Branch drift check (skip for beginners — too noisy)
+if [ "$coding_level" != "beginner" ]; then
+    if [ "$branch" != "$MAIN_BRANCH" ] && [ "$branch" != "HEAD" ]; then
+        git fetch origin "$MAIN_BRANCH" --quiet 2>/dev/null
+        if git rev-parse "origin/$MAIN_BRANCH" >/dev/null 2>&1; then
+            behind=$(git rev-list --count "HEAD..origin/$MAIN_BRANCH" 2>/dev/null || echo 0)
+            if [ "$behind" -gt 0 ]; then
+                echo "" >&2
+                echo "Drift: branch '$branch' is $behind commit(s) behind origin/$MAIN_BRANCH" >&2
+                echo "  Rebase before pushing: git rebase origin/$MAIN_BRANCH" >&2
+            else
+                echo "" >&2
+                echo "Drift: up to date with origin/$MAIN_BRANCH" >&2
+            fi
         fi
     fi
 fi
 
-# 4. Verify git hooks are active
-hooks_path=$(git config core.hooksPath 2>/dev/null)
-if [ "$hooks_path" = ".githooks" ]; then
-    echo "" >&2
-    echo "Git hooks: active (.githooks)" >&2
-else
-    echo "" >&2
-    echo "Git hooks: NOT ACTIVE — run: git config core.hooksPath .githooks" >&2
+# 4. Verify git hooks are active (skip for beginners — they don't manage hooks)
+if [ "$coding_level" != "beginner" ]; then
+    hooks_path=$(git config core.hooksPath 2>/dev/null)
+    if [ "$hooks_path" = ".githooks" ]; then
+        echo "" >&2
+        echo "Git hooks: active (.githooks)" >&2
+    else
+        echo "" >&2
+        echo "Git hooks: NOT ACTIVE — run: git config core.hooksPath .githooks" >&2
+    fi
 fi
 
 # 5a. Pilot consent nudge (sessions 1, 3, 5 only)
@@ -101,15 +128,33 @@ elif [ "$session_count" -ge 10 ]; then
     echo "Improvement: $session_count sessions since last /self-improve. Consider running /self-improve to check for new improvements." >&2
 fi
 
+# 6.5. GitHub connection check
+gh_user=$(gh auth status 2>&1 | grep -oP '(?<=Logged in to github.com account )\S+' | tr -d '()')
+if [ -n "$gh_user" ]; then
+    remote_url=$(git remote get-url origin 2>/dev/null)
+    if [ -n "$remote_url" ]; then
+        echo "" >&2
+        echo "GitHub: $gh_user | repo: $remote_url" >&2
+    else
+        echo "" >&2
+        echo "GitHub: $gh_user | no remote — run /github-account-setup to create a repo" >&2
+    fi
+else
+    echo "" >&2
+    echo "GitHub: not connected — run /github-account-setup to set up" >&2
+fi
+
 # 7. Onboarding status
-state_file=".claude/.onboarding-state.json"
 if [ -f "$state_file" ]; then
     persona=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('persona','unknown'))" 2>/dev/null)
-    coding_level=$(python3 -c "import json; d=json.load(open('$state_file')); print(d.get('coding_level','unknown'))" 2>/dev/null)
     graduated=$(python3 -c "import json; d=json.load(open('$state_file')); print(sum(1 for p in d.get('patterns',{}).values() if p.get('graduated')))" 2>/dev/null)
     total_habits=8
     echo "" >&2
-    echo "Alfred: $persona ($coding_level) | Habits: $graduated/$total_habits graduated" >&2
+    if [ "$coding_level" = "beginner" ]; then
+        echo "Alfred: $persona | Skills learned: $graduated of $total_habits" >&2
+    else
+        echo "Alfred: $persona ($coding_level) | Habits: $graduated/$total_habits graduated" >&2
+    fi
 else
     echo "" >&2
     echo "Alfred: Not bootstrapped. Run /bootstrap to get started." >&2
@@ -129,7 +174,11 @@ fi
 if [ -f "$state_file" ]; then
     if [ "$graduated" = "0" ] && [ "$session_count" -le 3 ]; then
         echo "" >&2
-        echo "Tip: Run /teach to learn your first development habit" >&2
+        if [ "$coding_level" = "beginner" ]; then
+            echo "Tip: Run /teach for a short lesson, or just tell me what you want to build!" >&2
+        else
+            echo "Tip: Run /teach to learn your first development habit" >&2
+        fi
     elif [ "$graduated" -lt "$total_habits" ]; then
         next_habit=$(python3 -c "
 import json
