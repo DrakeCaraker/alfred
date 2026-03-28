@@ -1,33 +1,115 @@
-# Collective Learning Signal Schema v1.0
-# Signals are anonymized correction patterns contributed by opt-in users
+# Collective Learning Signal Schema v2.0
+# Signals are anonymized patterns contributed by opt-in users.
+# v2.0 adds: signal types (correction, rule, graduation, automation, gap),
+# proper noun anonymization, and schema_version per signal.
 
-schema_version: "1.0"
+schema_version: "2.0"
 
+# Every signal has a type field. Older signals without type are treated as "correction".
 signal:
+  type:
+    type: enum
+    values: [correction, rule, graduation, automation, gap]
+    description: "What kind of signal this is"
+
+  schema_version:
+    type: string
+    description: "Schema version this signal was created under (for filtering stale data)"
+    example: "2.0"
+
+  persona:
+    type: enum
+    values: [ml-ds, research, business-analytics, product-analytics, platform-bi, general]
+    description: "User's persona when signal was generated"
+
+  project_type:
+    type: enum
+    values: [python, js, ts, rust, go, r, mixed, unknown]
+    description: "Project type"
+
+  contributed_at:
+    type: string
+    format: date
+    description: "Date signal was contributed (YYYY-MM-DD)"
+
+# --- Type-specific fields ---
+
+correction:
   category:
     type: enum
     values: [git_workflow, formatting, testing, code_style, safety, explanation, tooling]
     description: "Category of the correction"
-
   pattern:
     type: string
     max_length: 200
-    description: "The correction pattern — no code, paths, or identifiers"
-    example: "Never modify test files to fix failing tests"
-
+    description: "Anonymized correction pattern — no code, paths, or identifiers"
   local_occurrences:
     type: integer
     description: "How many times this correction was made locally"
-
   promoted_to:
     type: enum
     values: [memory, rule, hook]
     description: "What the user promoted this correction to"
 
-  project_type:
+rule:
+  rule_text:
+    type: string
+    max_length: 200
+    description: "Anonymized rule text from CLAUDE.md"
+    example: "Never commit model checkpoint files"
+  category:
     type: enum
-    values: [python, js, ts, rust, go, r, mixed]
-    description: "Project type where correction occurred"
+    values: [git_workflow, formatting, testing, code_style, safety, explanation, tooling]
+  origin:
+    type: enum
+    values: [promoted, manual]
+    description: "How the rule arrived — promoted from feedback or written directly"
+  is_custom:
+    type: boolean
+    description: "True if the rule is not in the stock persona defaults"
+
+graduation:
+  habit:
+    type: enum
+    values: [context_before_action, scope_before_work, save_points, safe_experimentation, one_change_one_test, automated_recovery, provenance, self_improvement]
+  sessions_to_graduate:
+    type: integer
+    description: "Number of sessions from first exposure to graduation"
+  immediate_skip:
+    type: boolean
+    description: "True if user said 'I know' or 'skip' (graduated without full teaching)"
+  asked_why_count:
+    type: integer
+    description: "Number of times user asked 'why?' before graduating"
+  coding_level:
+    type: enum
+    values: [beginner, intermediate, advanced]
+
+automation:
+  automation_type:
+    type: enum
+    values: [hook, guard, ci_check, pre_commit, pre_push, command]
+    description: "What kind of automation"
+  event:
+    type: enum
+    values: [PostToolUse, SessionStart, Stop, PreCompact, PreCommit, PrePush, CI, Manual]
+    description: "When it triggers"
+  purpose:
+    type: string
+    max_length: 200
+    description: "Anonymized description of what the automation does"
+    example: "Block files over 10MB from being committed"
+
+gap:
+  gap_category:
+    type: enum
+    values: [git_workflow, formatting, testing, code_style, safety, explanation, tooling]
+    description: "Category of the missing rule"
+  gap_pattern:
+    type: string
+    max_length: 200
+    description: "Anonymized description of the rule the user added that wasn't in the stock persona"
+    example: "Pin all dependency versions in requirements files"
 
 privacy_constraints:
   - "No file paths"
@@ -35,5 +117,7 @@ privacy_constraints:
   - "No project names"
   - "No user identities"
   - "No URLs"
+  - "No company or proper nouns"
   - "Anonymizer runs locally before any transmission"
   - "User can preview with /collective preview"
+  - "All signals encrypted before leaving the machine"

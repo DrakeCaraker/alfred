@@ -92,6 +92,51 @@ If more than 3 changes are identified, list the remainder in a "Deferred improve
 4. Run verification: Run the project's lint and typecheck commands (detect from Makefile, package.json, or pyproject.toml — same detection as /ci-fix Step 0)
 5. Reset session counter: `echo 0 > .claude/.session-count`
 
+### Emit rule and gap signals (collective learning)
+
+After executing approved changes, scan CLAUDE.md for rules and compare against the stock persona defaults to generate collective signals. Only do this if `.claude/.pilot-consent.json` exists with `"consented": true`.
+
+**Rule signals:** For each non-negotiable rule and guardrail in CLAUDE.md:
+1. Anonymize the rule text using the anonymizer: `python3 collective/anonymizer.py "RULE_TEXT"` (use `$ALFRED_ROOT/collective/anonymizer.py` in plugin mode)
+2. Classify the category (same categories as correction signals: git_workflow, formatting, testing, code_style, safety, explanation, tooling)
+3. Determine origin: "promoted" if the rule came from a feedback memory promotion (check this session's changes), "manual" if it was written directly
+4. Determine is_custom: true if the rule text doesn't appear in the stock persona file at `$ALFRED_ROOT/personas/<persona>.md`
+
+**Gap signals:** For each rule classified as `is_custom: true`:
+1. This is a gap — the user added something the stock persona doesn't have
+2. Anonymize the rule text
+3. Classify the gap category
+
+Append all rule and gap signals to `.claude/.collective-pending.json`:
+
+```python
+# For each rule:
+signal = {
+    "type": "rule",
+    "schema_version": "2.0",
+    "rule_text": anonymized_text,  # max 200 chars
+    "category": category,
+    "origin": "promoted" | "manual",
+    "is_custom": True | False,
+    "persona": persona_from_onboarding_state,
+    "project_type": os.environ.get("ALFRED_PROJECT_TYPE", "unknown"),
+    "contributed_at": str(date.today()),
+}
+
+# For each custom rule (is_custom=True), also emit:
+gap_signal = {
+    "type": "gap",
+    "schema_version": "2.0",
+    "gap_category": category,
+    "gap_pattern": anonymized_text,  # max 200 chars
+    "persona": persona,
+    "project_type": project_type,
+    "contributed_at": str(date.today()),
+}
+```
+
+Read the existing `.collective-pending.json` first and append to its signals array. Create it if it doesn't exist.
+
 ### Step 5b: Persona Evolution
 
 After executing approved changes, evolve the user's persona. Use the `alfred:persona-evolve` skill:

@@ -141,6 +141,57 @@ Update the pattern entry:
 
 Write the updated state back to `.claude/.onboarding-state.json`.
 
+### Emit graduation signal (collective learning)
+
+If the habit was just graduated (either by seen count or immediate graduation), append a graduation signal to `.claude/.collective-pending.json`:
+
+```bash
+# Read existing pending file or start fresh
+python3 -c "
+import json, os, sys
+from datetime import date
+
+pending_file = '.claude/.collective-pending.json'
+pending = {'schema_version': '2.0', 'signals': []}
+if os.path.isfile(pending_file):
+    try:
+        with open(pending_file) as f:
+            pending = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        pass
+
+# Read onboarding state for persona and coding level
+state = {}
+if os.path.isfile('.claude/.onboarding-state.json'):
+    with open('.claude/.onboarding-state.json') as f:
+        state = json.load(f)
+
+signal = {
+    'type': 'graduation',
+    'schema_version': '2.0',
+    'habit': sys.argv[1],
+    'sessions_to_graduate': int(sys.argv[2]),
+    'immediate_skip': sys.argv[3] == 'true',
+    'asked_why_count': int(sys.argv[4]),
+    'coding_level': state.get('coding_level', 'unknown'),
+    'persona': state.get('persona', 'unknown'),
+    'project_type': os.environ.get('ALFRED_PROJECT_TYPE', 'unknown'),
+    'contributed_at': str(date.today()),
+}
+pending['signals'].append(signal)
+with open(pending_file, 'w') as f:
+    json.dump(pending, f, indent=2)
+" HABIT_KEY SEEN_COUNT IMMEDIATE_SKIP ASKED_WHY_COUNT
+```
+
+Replace `HABIT_KEY`, `SEEN_COUNT`, `IMMEDIATE_SKIP`, `ASKED_WHY_COUNT` with the actual values from this graduation:
+- `HABIT_KEY`: the pattern key (e.g., "context_before_action")
+- `SEEN_COUNT`: the `seen` value at graduation
+- `IMMEDIATE_SKIP`: "true" if user said "I know"/"skip", "false" otherwise
+- `ASKED_WHY_COUNT`: total number of times user asked "why?" across all exposures (estimate from context)
+
+Only emit this signal if `.claude/.pilot-consent.json` exists and has `"consented": true`. Skip silently if no consent.
+
 ## Step 4: Graduation message
 
 If the habit was just graduated (either by seen count or immediate graduation):

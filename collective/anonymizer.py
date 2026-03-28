@@ -53,8 +53,54 @@ def anonymize(text: str) -> str:
     # Specific project/repo names (heuristic: org/repo patterns)
     text = re.sub(r'\b[A-Za-z0-9_-]+/[A-Za-z0-9_-]+\b(?!\.)', '[REPO]', text)
 
+    # Proper nouns / company names (capitalized words not at sentence start)
+    # Preserve common English words and technical terms that happen to be capitalized
+    _SAFE_CAPS = {
+        'Never', 'Always', 'Do', 'Don', 'The', 'A', 'An', 'In', 'On', 'At',
+        'For', 'To', 'Of', 'By', 'With', 'From', 'If', 'Or', 'And', 'But',
+        'Not', 'No', 'All', 'Any', 'Each', 'Every', 'Only', 'Run', 'Use',
+        'Add', 'Set', 'Get', 'Put', 'Make', 'Check', 'Test', 'Fix', 'Stop',
+        'Start', 'Save', 'Load', 'Read', 'Write', 'Create', 'Delete', 'Block',
+        'Pin', 'Lock', 'Skip', 'Avoid', 'Ensure', 'Verify', 'Require',
+        'Python', 'JavaScript', 'TypeScript', 'Rust', 'Go', 'SQL', 'HTML',
+        'CSS', 'JSON', 'YAML', 'XML', 'CSV', 'API', 'REST', 'HTTP', 'HTTPS',
+        'CI', 'CD', 'PR', 'Git', 'GitHub', 'Docker', 'Kubernetes', 'AWS',
+        'GCP', 'Azure', 'Linux', 'Mac', 'Windows', 'SSH', 'SSL', 'TLS',
+        'ML', 'AI', 'GPU', 'CPU', 'RAM', 'SSD', 'CLI', 'IDE', 'UI', 'UX',
+        'PostgreSQL', 'MySQL', 'Redis', 'MongoDB', 'Snowflake', 'BigQuery',
+        'Airflow', 'Spark', 'Kafka', 'Terraform', 'Ansible',
+        'React', 'Vue', 'Angular', 'Node', 'Express', 'Django', 'Flask',
+        'PyTorch', 'TensorFlow', 'Pandas', 'NumPy', 'SciPy',
+        'LaTeX', 'BibTeX', 'Jupyter', 'RStudio', 'SHAP', 'LIME',
+        'True', 'False', 'None', 'NULL', 'OK', 'CRUD', 'ACID',
+    }
+
+    def _replace_proper_noun(m):
+        word = m.group(0)
+        if word in _SAFE_CAPS:
+            return word
+        return '[NAME]'
+
+    # Match capitalized words (2+ chars) that aren't at sentence start
+    # Split into sentences, then check non-initial capitalized words
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    cleaned = []
+    for sent in sentences:
+        words = sent.split()
+        new_words = []
+        for i, w in enumerate(words):
+            # Skip first word of sentence and words inside brackets
+            if i == 0 or w.startswith('['):
+                new_words.append(w)
+            elif re.match(r'^[A-Z][a-z]+$', w) and w not in _SAFE_CAPS:
+                new_words.append('[NAME]')
+            else:
+                new_words.append(w)
+        cleaned.append(' '.join(new_words))
+    text = ' '.join(cleaned)
+
     # Collapse multiple [REDACTED] markers
-    text = re.sub(r'(\[(?:PATH|FILE|URL|EMAIL|IP|TOKEN|HASH|IDENT|REPO|REDACTED)\]\s*){2,}',
+    text = re.sub(r'(\[(?:PATH|FILE|URL|EMAIL|IP|TOKEN|HASH|IDENT|REPO|REDACTED|NAME)\]\s*){2,}',
                   lambda m: m.group(0).split(']')[0] + '] ', text)
 
     return text.strip()
@@ -76,6 +122,10 @@ def run_tests():
         ("commit abc1234def", "abc1234def", "git hash removed"),
         ("function get_user_profile_data_from_api", "get_user_profile_data_from_api", "long identifier removed"),
         ("in DrakeCaraker/alfred repo", "DrakeCaraker", "repo reference removed"),
+        # Proper noun / company name tests
+        ("Never commit Acme Corp API credentials", "Acme", "company name removed"),
+        ("Don't modify the Contoso database", "Contoso", "proper noun removed"),
+        ("Check with Johnson before merging", "Johnson", "person name removed"),
     ]
 
     passed = 0
@@ -95,6 +145,10 @@ def run_tests():
         ("Always lint before pushing", "Always lint before pushing"),
         ("Use conventional commits", "conventional commits"),
         ("127.0.0.1 is fine", "127.0.0.1"),
+        # Technical terms should survive proper noun filter
+        ("Use Python and PyTorch for training", "Python and PyTorch"),
+        ("Run Docker on Linux", "Docker on Linux"),
+        ("Never skip Git hooks", "Git hooks"),
     ]
     for input_text, should_contain, *rest in preserve_tests:
         desc = rest[0] if rest else f"preserves '{should_contain}'"

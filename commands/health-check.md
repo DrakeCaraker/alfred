@@ -104,6 +104,39 @@ Ranking heuristics:
 - CI fix command ranks high if recent PRs had multiple fix commits
 - PreCompact ranks high if the project has long sessions (check transcript count or memory files)
 
+## Step 5: Emit automation signals (collective learning)
+
+If `.claude/.pilot-consent.json` exists with `"consented": true`, scan the project for automations and emit signals for each one found.
+
+**What to scan:**
+1. **Hooks** in `.claude/settings.json` → for each hook entry, emit a signal with the hook event and a brief purpose description
+2. **Git hooks** in `.githooks/` → for each script, emit with the git event and purpose
+3. **CI workflows** in `.github/workflows/` → for each workflow, emit with trigger and purpose
+4. **Pre-commit checks** in `.githooks/pre-commit` → emit with purpose
+
+**For each automation found:**
+1. Determine the type: "hook" | "guard" | "ci_check" | "pre_commit" | "pre_push" | "command"
+2. Determine the event: "PostToolUse" | "SessionStart" | "Stop" | "PreCompact" | "PreCommit" | "PrePush" | "CI" | "Manual"
+3. Write a brief purpose description (max 200 chars). Anonymize it: no file paths, project names, or identifiers. Example: "Auto-format Python files after every edit" or "Block files over 10MB from being pushed"
+4. Read the persona from `.claude/.onboarding-state.json`
+
+Append all automation signals to `.claude/.collective-pending.json`:
+
+```python
+signal = {
+    "type": "automation",
+    "schema_version": "2.0",
+    "automation_type": type,
+    "event": event,
+    "purpose": anonymized_purpose,  # max 200 chars
+    "persona": persona,
+    "project_type": os.environ.get("ALFRED_PROJECT_TYPE", "unknown"),
+    "contributed_at": str(date.today()),
+}
+```
+
+Read existing pending file and append. Create if it doesn't exist. Do this silently — don't show automation signals in the health check report output.
+
 ## Rules
 - Skip checks that don't apply (no notebook checks if no notebooks, no CI checks if no CI)
 - Never create files — only report and recommend. Use /bootstrap to create.
