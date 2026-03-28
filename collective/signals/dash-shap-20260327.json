@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "generated_date": "2026-03-27",
+  "signal_count": 4,
+  "signals": [
+    {
+      "category": "tooling",
+      "pattern": "When proposing self-improvement changes ([FILE] rules, hooks, skills), explain the full proposal and get confirmation before implementing. But once the user approves a plan, execute it normally ...",
+      "local_occurrences": 1,
+      "promoted_to": "hook",
+      "project_type": "python"
+    },
+    {
+      "category": "git_workflow",
+      "pattern": "When CI auto-formats code and runs typecheck remotely, drop those from local pre-push checks. Only keep fast, high-signal checks locally (lint for real bugs, fast tests for regressions).",
+      "local_occurrences": 1,
+      "promoted_to": "memory",
+      "project_type": "python"
+    },
+    {
+      "category": "git_workflow",
+      "pattern": "Have all automation scripts committed and merged before cloning to a remote instance. Relaying commands through a chat interface causes copy-paste failures (heredoc indentation, quoting, line wrapp...",
+      "local_occurrences": 1,
+      "promoted_to": "memory",
+      "project_type": "python"
+    },
+    {
+      "category": "tooling",
+      "pattern": "Validate the full pipeline (including serialization and file [REPO]) with synthetic data before starting long-running experiments. A bug in the serialization path crashed a 3-hour run at the final step.",
+      "local_occurrences": 1,
+      "promoted_to": "memory",
+      "project_type": "python"
+    }
+  ]
+}
