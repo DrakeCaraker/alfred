@@ -325,6 +325,46 @@ If GitHub was skipped in Step 1.5, remind the user:
 Note: Your project is saved locally. To back it up online later, run /github-account-setup
 ```
 
+## Step 7.8: Data collection consent
+
+Alfred collects anonymized data to improve. Show this disclosure and ask explicitly:
+
+**For beginners:**
+```
+One more thing — Alfred can collect anonymous information about which
+habits you're learning and how the system is working. This helps
+improve Alfred for everyone.
+
+What's collected (all anonymous):
+  • Which habits you've learned (not what you're building)
+  • How long sessions last (short/medium/long, not exact times)
+  • Which commands you use (names only, never your code or files)
+
+What's NEVER collected:
+  • Your name, email, or any personal info
+  • Your code, file names, or project details
+  • Anything that could identify you
+
+You can opt out anytime by running /pilot-consent revoke.
+
+Is this okay? (yes/no)
+```
+
+**For intermediate/advanced:**
+```
+Alfred collects anonymized telemetry (habit graduation, session counts,
+command usage — no code, paths, or PII). See .pilot/README.md for details.
+Opt out anytime: /pilot-consent revoke.
+
+Enable data collection? (yes/no)
+```
+
+If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "2.0"}` and `.claude/.pilot-identity.json` with a random UUID.
+
+If **no**: Create `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "2.0"}`. Say: "No problem. You can change this anytime with /pilot-consent."
+
+**Always ask explicitly.** Never auto-grant consent.
+
 ## Step 8: Welcome message
 
 Display a welcome message tailored to the coding level:

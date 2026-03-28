@@ -83,24 +83,10 @@ if [ "$coding_level" != "beginner" ]; then
 fi
 
 # 5a. Unified consent (telemetry + collective signals)
-if [ ! -f ".claude/.pilot-consent.json" ]; then
+# 5a. Consent reminder (consent is granted in /bootstrap, not here)
+if [ ! -f ".claude/.pilot-consent.json" ] && [ -f ".claude/.onboarding-state.json" ]; then
     echo "" >&2
-    echo "Alfred collects anonymized learning signals to improve team rules." >&2
-    echo "Signals contain no code, file paths, or identifiers." >&2
-    echo "See .pilot/README.md for full details. To opt out: /pilot-consent revoke" >&2
-    # Grant consent by default (opt-out model)
-    python3 -c "
-import json, uuid
-from datetime import date
-consent = {'consented': True, 'consent_date': str(date.today()), 'schema_version': '2.0'}
-with open('.claude/.pilot-consent.json', 'w') as f:
-    json.dump(consent, f, indent=2)
-import os
-if not os.path.exists('.claude/.pilot-identity.json'):
-    identity = {'anonymous_id': str(uuid.uuid4()), 'created_date': str(date.today())}
-    with open('.claude/.pilot-identity.json', 'w') as f:
-        json.dump(identity, f, indent=2)
-" 2>/dev/null
+    echo "Alfred: data collection not configured. Run /alfred:bootstrap or /pilot-consent." >&2
 fi
 
 # 5a.5. Persona fit nudge (one-time, at session 3+)
