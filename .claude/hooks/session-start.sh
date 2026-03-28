@@ -188,6 +188,16 @@ if [ -f "$bookmark_file" ]; then
     echo "  Continue where you left off, or start fresh with /new-work" >&2
 fi
 
+# 8.5. Branch hygiene nudge
+if [ "$branch" != "$MAIN_BRANCH" ] && [ "$branch" != "HEAD" ]; then
+    commits_ahead=$(git rev-list --count "origin/$MAIN_BRANCH..HEAD" 2>/dev/null || echo 0)
+    if [ "$commits_ahead" -ge 10 ]; then
+        echo "" >&2
+        echo "Branch hygiene: '$branch' is $commits_ahead commits ahead of $MAIN_BRANCH." >&2
+        echo "  Consider opening a PR for what's done and starting a new branch." >&2
+    fi
+fi
+
 # 9. Proactive recommendations
 if [ -f "$state_file" ]; then
     if [ "$graduated" = "0" ] && [ "$session_count" -le 3 ]; then
