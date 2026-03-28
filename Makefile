@@ -28,16 +28,18 @@ lint:
 validate:
 	@bash scripts/validate.sh
 
-## fix: Auto-fix deterministic issues (sync commands, permissions)
+## fix: Auto-fix deterministic issues (sync commands + hooks, permissions)
 fix:
 	@for f in .claude/commands/*.md; do \
 		base=$$(basename "$$f"); \
-		if [ -f "commands/$$base" ]; then \
-			cp "$$f" "commands/$$base"; \
-		fi; \
+		cp "$$f" "commands/$$base"; \
 	done
-	@chmod +x .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh 2>/dev/null || true
-	@echo "Fixed: command sync + permissions"
+	@for f in .claude/hooks/*.sh; do \
+		base=$$(basename "$$f"); \
+		cp "$$f" "hooks/$$base"; \
+	done
+	@chmod +x .claude/hooks/*.sh hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh 2>/dev/null || true
+	@echo "Fixed: command sync + hook sync + permissions"
 
 ## check: Run all validations (validate + lint + test)
 check: validate lint test

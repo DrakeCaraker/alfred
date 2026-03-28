@@ -84,6 +84,28 @@ if [ "$errors" -eq 0 ]; then
   echo "All command copies in sync"
 fi
 
+# --- Hook copy sync ---
+echo ""
+echo "==> Verifying hook copies in sync..."
+hook_sync_ok=1
+for f in .claude/hooks/*.sh; do
+  base=$(basename "$f")
+  if [ -f "hooks/$base" ]; then
+    if ! diff -q "$f" "hooks/$base" > /dev/null 2>&1; then
+      echo "ERROR: hooks/$base is out of sync with .claude/hooks/$base"
+      errors=1
+      hook_sync_ok=0
+    fi
+  else
+    echo "ERROR: hooks/$base missing (exists in .claude/hooks/)"
+    errors=1
+    hook_sync_ok=0
+  fi
+done
+if [ "$hook_sync_ok" -eq 1 ]; then
+  echo "All hook copies in sync"
+fi
+
 # --- Shell syntax ---
 echo ""
 echo "==> Checking shell script syntax..."
