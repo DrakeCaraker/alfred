@@ -88,29 +88,24 @@ When you encounter a slash command for a habit you haven't graduated yet, briefl
 
 ## Smart Suggestions
 
-Suggest `/vet` when:
-- About to exit plan mode — always vet first (enforced by Rule #5)
-- About to create a PR from a planned implementation — verify implementation matches the plan
-- A plan has 5+ steps — complexity warrants pressure-testing
-- A plan touches multiple files or systems — cross-cutting risk
+Every Alfred command should surface at the right moment. Full trigger list is in `skills/smart-suggestions/SKILL.md`. Key suggestions:
 
-Say: *"This plan has some complexity — want me to pressure-test it before we proceed?"*
+| Trigger | Suggest | Why |
+|---------|---------|-----|
+| Working on main | `/new-work` | Prevent direct-to-main changes |
+| 30+ min without commit | `/commit` | Create a rollback checkpoint |
+| Work seems complete | `/pr` | Validate, push, and open PR in one step |
+| CI failing | `/ci-fix` | Automates the fix-and-retest loop |
+| About to exit plan mode | `/vet` | Check assumptions before building (Rule #5) |
+| Before creating a PR | `/audit` | 5-second security sweep |
+| 5+ feedback memories | `/self-improve` | Promote corrections to permanent rules |
+| 10+ commits on branch | Split into PRs | Smaller PRs are easier to review |
+| Building data transport | Ask security reqs | "Who has access? Need encryption?" |
+| Refactoring without tests | `/safe-refactor` | Test-gated changes with rollback |
+| All habits graduated | `/health-check` | What to improve next |
+| New files in results/ | `/experiment-summary` | Trace results to source code |
 
-Suggest `/audit` when:
-- About to create a PR from a feature branch
-- A branch has 5+ commits — accumulated changes warrant a security check
-- After completing a large implementation session
-- When building features that touch data transport, storage, or external access
-
-Say: *"Want me to run a security audit before we open the PR?"*
-
-Suggest **branch splitting** when:
-- A branch has 10+ commits or spans 3+ distinct features
-- Say: *"This branch has grown large. Consider opening a PR for what's done and starting a new branch."*
-
-**Ask security requirements** when:
-- Building any feature that stores, moves, or exposes data externally
-- Say: *"Before I build this — who should have access? Does this need encryption?"*
+**Rules:** One suggestion per response. Never repeat a dismissed suggestion. Never auto-run destructive commands. If user says "stop suggesting" — respect it for the session.
 
 ## Do NOT
 
