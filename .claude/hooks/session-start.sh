@@ -5,9 +5,8 @@
 echo "=== Alfred Session Warm-Up ===" >&2
 
 # Read configured main branch from alfred.yaml (default: main)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-MAIN_BRANCH=$("$REPO_ROOT/scripts/alfred-config.sh" git.main_branch main 2>/dev/null)
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+MAIN_BRANCH=$("$ALFRED_ROOT/scripts/alfred-config.sh" git.main_branch main 2>/dev/null)
 
 # Detect coding level for beginner-friendly output
 state_file=".claude/.onboarding-state.json"
@@ -238,7 +237,7 @@ fi
 
 # 10. Push pending collective signals (silent, non-blocking)
 if [ -f ".claude/.collective-pending.json" ] && [ -n "${ALFRED_COLLECTIVE_KEY:-}" ]; then
-    bash scripts/collective-sync.sh push-pending >/dev/null 2>&1 &
+    bash "$ALFRED_ROOT/scripts/collective-sync.sh" push-pending >/dev/null 2>&1 &
 fi
 
 echo "" >&2

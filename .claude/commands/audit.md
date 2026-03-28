@@ -4,9 +4,17 @@ Run a deep security and quality audit of the project, present findings, and offe
 
 ## Algorithm
 
+### Detect Alfred root
+
+Before running any script, detect where Alfred is installed:
+```bash
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)}"
+```
+Use `$ALFRED_ROOT` as the prefix for all Alfred script paths below. User project files (`.claude/`, `.pilot/`) are always relative to CWD.
+
 1. Run the audit:
    ```bash
-   bash scripts/audit.sh
+   bash "$ALFRED_ROOT/scripts/audit.sh"
    ```
 
 2. If all checks pass, say: "Security audit passed. No issues found."

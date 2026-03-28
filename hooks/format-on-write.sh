@@ -23,9 +23,8 @@ case "$f" in
 esac
 
 # Read preferred formatter from alfred.yaml (if configured)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-preferred=$("$REPO_ROOT/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+preferred=$("$ALFRED_ROOT/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
 
 # If a specific formatter is configured, use it directly
 if [ "$preferred" != "auto" ] && [ "$preferred" != "none" ]; then

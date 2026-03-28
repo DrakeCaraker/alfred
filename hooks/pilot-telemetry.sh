@@ -22,6 +22,9 @@ if [ -z "$uuid" ]; then
     exit 0
 fi
 
+# Detect Alfred root for script references
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+
 # Calculate duration bucket
 duration_bucket="unknown"
 if [ -f ".claude/.pilot-session-start" ]; then
@@ -121,8 +124,8 @@ while IFS= read -r feedback_file; do
     break
 done < <(find "$HOME/.claude/projects" -name "feedback_*.md" -type f 2>/dev/null | head -1)
 
-if [ -n "$active_memory_dir" ] && [ -f "collective/aggregator.py" ]; then
-    python3 collective/aggregator.py "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
+if [ -n "$active_memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
+    python3 "$ALFRED_ROOT/collective/aggregator.py" "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
 fi
 
 exit 0

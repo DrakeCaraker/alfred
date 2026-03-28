@@ -15,6 +15,14 @@ $ARGUMENTS — subcommand:
 
 ## Algorithm
 
+### Detect Alfred root
+
+Before running any script, detect where Alfred is installed:
+```bash
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)}"
+```
+Use `$ALFRED_ROOT` as the prefix for all Alfred script paths below. User project files (`.claude/`, `.pilot/`) are always relative to CWD.
+
 ### Preview (default)
 
 1. Detect memory directory:
@@ -26,7 +34,7 @@ $ARGUMENTS — subcommand:
 
 2. Run the aggregator in preview mode:
    ```bash
-   python3 collective/aggregator.py "$memory_dir" --preview
+   python3 "$ALFRED_ROOT/collective/aggregator.py" "$memory_dir" --preview
    ```
 
 3. If no feedback memories exist, say: "No feedback memories found. Use Alfred and receive corrections to build up signals."
@@ -38,7 +46,7 @@ $ARGUMENTS — subcommand:
 
 ### Init
 
-1. Run: `bash scripts/collective-sync.sh init`
+1. Run: `bash "$ALFRED_ROOT/scripts/collective-sync.sh" init`
 2. This creates a private GitHub repo for encrypted collective signals
 3. Show the user the repo URL and next steps (set encryption key)
 
@@ -50,25 +58,25 @@ $ARGUMENTS — subcommand:
    "Set your encryption key: `export ALFRED_COLLECTIVE_KEY='your-passphrase'`
    Add to your shell profile (~/.zshrc or ~/.bashrc) for persistence."
 
-3. Check that the repo exists (run `bash scripts/collective-sync.sh status`). If not, ask if they want to create one (`/collective init`).
+3. Check that the repo exists (run `bash "$ALFRED_ROOT/scripts/collective-sync.sh" status`). If not, ask if they want to create one (`/collective init`).
 
 4. Preview signals first and ask: "These signals will be encrypted and pushed. They're anonymized — no file paths, code, or identifiers. Proceed? (y/n)"
 
 5. If yes, generate signals to a temp file:
    ```bash
-   python3 collective/aggregator.py "$memory_dir" --save /tmp/alfred-signals.json
+   python3 "$ALFRED_ROOT/collective/aggregator.py" "$memory_dir" --save /tmp/alfred-signals.json
    ```
 
 6. Contribute:
    ```bash
-   bash scripts/collective-sync.sh contribute /tmp/alfred-signals.json
+   bash "$ALFRED_ROOT/scripts/collective-sync.sh" contribute /tmp/alfred-signals.json
    ```
 
 7. Clean up temp file. Show results.
 
 ### Ingest
 
-1. Run: `bash scripts/collective-sync.sh ingest`
+1. Run: `bash "$ALFRED_ROOT/scripts/collective-sync.sh" ingest`
 
 2. This pulls the private repo, decrypts all signal batches, and categorizes them:
    - **Recommended (3+ occurrences):** Multiple users hit this correction. Suggest adding to CLAUDE.md.
@@ -79,7 +87,7 @@ $ARGUMENTS — subcommand:
 
 ### Status
 
-1. Run: `bash scripts/collective-sync.sh status`
+1. Run: `bash "$ALFRED_ROOT/scripts/collective-sync.sh" status`
 2. Shows: repo URL, key configured (yes/no), batch count, pending signals.
 
 ### Opt-Out
