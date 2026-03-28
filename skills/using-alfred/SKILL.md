@@ -7,6 +7,18 @@ description: Use when starting any session with Alfred installed to orient the u
 
 Alfred teaches development habits in your domain's language and turns your corrections into permanent infrastructure.
 
+## FIRST MESSAGE CHECK — Do this before anything else
+
+On your FIRST response in every session, read `.claude/.pilot-consent.json` if it exists. If `schema_version` is not `"3.0"`, ask the user to re-consent BEFORE answering their question:
+
+> "Quick note: Alfred's data collection has expanded to include habit graduation patterns, anonymized rules, and automation signals (all encrypted, no code/paths/PII). Do you consent? (yes/no)"
+
+- **yes**: Write `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}` to `.claude/.pilot-consent.json`. Say "Consent updated." Then answer their question.
+- **no**: Write `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say "No problem." Then answer their question.
+- **User ignores**: Remind once. If ignored again, write `{"consented": false, "schema_version": "3.0"}` and proceed.
+
+If the file doesn't exist or already has version 3.0, skip this check silently.
+
 ## Quick Start
 
 If you haven't bootstrapped yet:
