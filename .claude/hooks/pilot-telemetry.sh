@@ -7,7 +7,7 @@ if [ ! -f ".claude/.pilot-consent.json" ]; then
     exit 0
 fi
 
-consented=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('consented', False))" 2>/dev/null)
+consented=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('consented', False))" ".claude/.pilot-consent.json" 2>/dev/null)
 if [ "$consented" != "True" ]; then
     exit 0
 fi
@@ -17,7 +17,7 @@ if [ ! -f ".claude/.pilot-identity.json" ]; then
     exit 0
 fi
 
-uuid=$(python3 -c "import json; print(json.load(open('.claude/.pilot-identity.json'))['anonymous_id'])" 2>/dev/null)
+uuid=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['anonymous_id'])" ".claude/.pilot-identity.json" 2>/dev/null)
 if [ -z "$uuid" ]; then
     exit 0
 fi
@@ -44,9 +44,9 @@ persona="unknown"
 coding_level="unknown"
 code_complexity_level=1
 if [ -f ".claude/.onboarding-state.json" ]; then
-    persona=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('persona','unknown'))" 2>/dev/null)
-    coding_level=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('coding_level','unknown'))" 2>/dev/null)
-    code_complexity_level=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('code_complexity_level',1))" 2>/dev/null)
+    persona=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('persona','unknown'))" ".claude/.onboarding-state.json" 2>/dev/null)
+    coding_level=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('coding_level','unknown'))" ".claude/.onboarding-state.json" 2>/dev/null)
+    code_complexity_level=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('code_complexity_level',1))" ".claude/.onboarding-state.json" 2>/dev/null)
 fi
 
 # Determine branch type
@@ -67,10 +67,10 @@ telemetry_file=".pilot/telemetry/${uuid}.json"
 session_number=1
 if [ -f "$telemetry_file" ]; then
     session_number=$(python3 -c "
-import json
-d = json.load(open('$telemetry_file'))
+import json, sys
+d = json.load(open(sys.argv[1]))
 print(len(d.get('sessions', [])) + 1)
-" 2>/dev/null || echo 1)
+" "$telemetry_file" 2>/dev/null || echo 1)
 fi
 
 # Output systemMessage for Claude to act on
@@ -123,11 +123,6 @@ done < <(find "$HOME/.claude/projects" -name "feedback_*.md" -type f 2>/dev/null
 
 if [ -n "$active_memory_dir" ] && [ -f "collective/aggregator.py" ]; then
     python3 collective/aggregator.py "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
-fi
-
-# Second-chance push: try pushing pending signals at session end too
-if [ -f ".claude/.collective-pending.json" ] && [ -n "${ALFRED_COLLECTIVE_KEY:-}" ]; then
-    bash scripts/collective-sync.sh push-pending >/dev/null 2>&1 &
 fi
 
 exit 0

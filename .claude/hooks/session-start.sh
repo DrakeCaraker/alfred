@@ -91,11 +91,16 @@ if [ ! -f ".claude/.pilot-consent.json" ]; then
     echo "See .pilot/README.md for full details. To opt out: /pilot-consent revoke" >&2
     # Grant consent by default (opt-out model)
     python3 -c "
-import json
+import json, uuid
 from datetime import date
 consent = {'consented': True, 'consent_date': str(date.today()), 'schema_version': '2.0'}
 with open('.claude/.pilot-consent.json', 'w') as f:
     json.dump(consent, f, indent=2)
+import os
+if not os.path.exists('.claude/.pilot-identity.json'):
+    identity = {'anonymous_id': str(uuid.uuid4()), 'created_date': str(date.today())}
+    with open('.claude/.pilot-identity.json', 'w') as f:
+        json.dump(identity, f, indent=2)
 " 2>/dev/null
 fi
 
