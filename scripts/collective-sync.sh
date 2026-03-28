@@ -3,7 +3,8 @@
 #
 # Usage:
 #   collective-sync.sh init                  Create the private repo
-#   collective-sync.sh contribute <signals>  Encrypt and push local signals
+#   collective-sync.sh contribute <signals>  Encrypt and push local signals (auto-detects path)
+#   collective-sync.sh submit <signals>      Submit signals as GitHub issue (no key needed)
 #   collective-sync.sh ingest                Decrypt and display collective signals
 #   collective-sync.sh push-pending          Push .collective-pending.json (called by session-start hook)
 #   collective-sync.sh status                Show repo info and signal count
@@ -14,6 +15,7 @@
 set -euo pipefail
 
 COLLECTIVE_REPO="${ALFRED_COLLECTIVE_REPO:-DrakeCaraker/alfred-collective}"
+ALFRED_PUBLIC_REPO="${ALFRED_PUBLIC_REPO:-DrakeCaraker/alfred}"
 PENDING_FILE=".claude/.collective-pending.json"
 
 # --- Helpers ---
@@ -143,6 +145,57 @@ GITIGNORE
   echo "  3. Run /collective contribute to push your first signals"
 }
 
+cmd_submit() {
+  local signals_file="${1:-}"
+  if [ -z "$signals_file" ] || [ ! -f "$signals_file" ]; then
+    die "Usage: collective-sync.sh submit <signals.json>"
+  fi
+
+  check_gh_auth
+
+  echo "Submitting anonymized signals to Alfred collective..."
+
+  # Validate signal format
+  local count
+  count=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+signals = data.get('signals', [])
+# Verify all signals have required fields
+for s in signals:
+    assert 'category' in s, 'missing category'
+    assert 'pattern' in s, 'missing pattern'
+    assert len(s['pattern']) <= 200, 'pattern too long'
+print(len(signals))
+" "$signals_file" 2>&1) || die "Invalid signal format: $count"
+
+  # Read the JSON content
+  local body
+  body=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+# Add metadata
+data['submitted_at'] = '$(date +%Y-%m-%d)'
+print(json.dumps(data, indent=2))
+" "$signals_file")
+
+  # Create a GitHub issue on the public Alfred repo
+  gh issue create \
+    --repo "$ALFRED_PUBLIC_REPO" \
+    --title "collective-signal: $count signals $(date +%Y-%m-%d)" \
+    --label "collective-signal" \
+    --body "\`\`\`json
+$body
+\`\`\`" >/dev/null 2>&1
+
+  echo "Submitted $count anonymized signals to Alfred collective."
+  echo ""
+  echo "Signals are anonymized — no code, paths, or identifiers."
+  echo "A maintainer will review and ingest them."
+}
+
 cmd_contribute() {
   local tmp_dir=""
   local merged_file=""
@@ -155,8 +208,17 @@ cmd_contribute() {
   fi
 
   check_gh_auth
-  check_key
 
+  # Auto-detect contribution path
+  if [ -z "${ALFRED_COLLECTIVE_KEY:-}" ] || ! gh repo view "$COLLECTIVE_REPO" >/dev/null 2>&1; then
+    # Community path: submit via GitHub issue on public repo
+    cmd_submit "$signals_file"
+    cleanup
+    trap - EXIT
+    return 0
+  fi
+
+  # Owner path: direct encrypted push (continues below)
   echo "Syncing with collective repo..."
 
   tmp_dir=$(mktemp -d)
@@ -256,6 +318,8 @@ cmd_push_pending() {
   fi
 
   if [ -z "${ALFRED_COLLECTIVE_KEY:-}" ]; then
+    # No encryption key — submit via issue instead
+    cmd_submit "$PENDING_FILE" >/dev/null 2>&1 && rm -f "$PENDING_FILE"
     exit 0
   fi
 
@@ -456,14 +520,16 @@ shift || true
 case "$cmd" in
   init)          cmd_init ;;
   contribute)    cmd_contribute "$@" ;;
+  submit)        cmd_submit "$@" ;;
   push-pending)  cmd_push_pending ;;
   ingest)        cmd_ingest "$@" ;;
   status)        cmd_status ;;
   *)
-    echo "Usage: collective-sync.sh <init|contribute|push-pending|ingest|status>"
+    echo "Usage: collective-sync.sh <init|contribute|submit|push-pending|ingest|status>"
     echo ""
     echo "  init                 Create the private collective repo"
-    echo "  contribute <file>    Encrypt and push signals to the repo"
+    echo "  contribute <file>    Encrypt and push signals to the repo (auto-detects path)"
+    echo "  submit <file>        Submit signals as a GitHub issue (no key needed)"
     echo "  push-pending         Push pending signals (called by session-start hook)"
     echo "  ingest               Decrypt and display collective signals"
     echo "  status               Show repo info"
