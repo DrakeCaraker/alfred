@@ -88,13 +88,16 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 
 ## Re-consent Handling
 
-If the session-start hook shows "Alfred Data Collection Update" with a yes/no consent question, process the user's FIRST response as the consent answer:
+On your FIRST response in any session, check `.claude/.pilot-consent.json`. If it exists and `schema_version` is not `"3.0"`, the user needs to re-consent to expanded data collection. Ask them immediately, before answering their question:
 
-- **User says yes/y/ok/sure/fine**: Write `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}`. Say: "Consent updated. Collection resumed."
-- **User says no/n/nope/decline**: Write `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say: "No problem. No data will be collected. Change anytime with /pilot-consent."
-- **User says something else** (ignores the question, asks a different question): Treat as "not yet answered." Remind once: "Quick question from the session start — do you consent to Alfred's expanded data collection? (yes/no)" If they ignore again, write `{"consented": false, "schema_version": "3.0"}` and proceed — don't block their work.
+> "Quick note: Alfred's data collection has expanded to include habit graduation patterns, anonymized rules, and automation signals (all encrypted). Your previous consent covered an earlier version. Do you consent to the expanded collection? (yes/no)"
 
-Never ask more than twice. Never block the session on consent.
+Then process their response:
+- **yes/y/ok/sure/fine**: Write `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}`. Say: "Consent updated." Then answer their original question.
+- **no/n/nope/decline**: Write `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say: "No problem. No data collected." Then answer their original question.
+- **User ignores it**: Remind once. If ignored again, write `{"consented": false, "schema_version": "3.0"}` and proceed.
+
+Never ask more than twice. Never block the session on consent. If no `.pilot-consent.json` exists, don't ask — consent is handled by `/alfred:bootstrap`.
 
 ## Session End Behavior
 
