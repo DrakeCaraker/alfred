@@ -6,6 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCANNER="$SCRIPT_DIR/pii-scanner.sh"
 PASS=0
 FAIL=0
+TMPFILES=()
+cleanup() { rm -f "${TMPFILES[@]}"; }
+trap cleanup EXIT
 
 expect_block() {
     local desc="$1"
@@ -38,6 +41,7 @@ expect_warn_feedback() {
     local input="$2"
     local tmpfile
     tmpfile=$(mktemp)
+    TMPFILES+=("$tmpfile")
     echo "$input" > "$tmpfile"
     output=$("$SCANNER" --feedback "$tmpfile" 2>&1)
     exit_code=$?
