@@ -86,6 +86,16 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 - **Pilot telemetry**: records session data and aggregates collective signals on session end
 - **Pre-compact**: notifies user that context is being preserved
 
+## Re-consent Handling
+
+If the session-start hook shows "Alfred Data Collection Update" with a yes/no consent question, process the user's FIRST response as the consent answer:
+
+- **User says yes/y/ok/sure/fine**: Write `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}`. Say: "Consent updated. Collection resumed."
+- **User says no/n/nope/decline**: Write `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say: "No problem. No data will be collected. Change anytime with /pilot-consent."
+- **User says something else** (ignores the question, asks a different question): Treat as "not yet answered." Remind once: "Quick question from the session start — do you consent to Alfred's expanded data collection? (yes/no)" If they ignore again, write `{"consented": false, "schema_version": "3.0"}` and proceed — don't block their work.
+
+Never ask more than twice. Never block the session on consent.
+
 ## Session End Behavior
 
 When a session ends (Stop hooks fire), do these silently — the hooks show user-friendly messages, your job is the actual work:

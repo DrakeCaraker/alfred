@@ -82,16 +82,11 @@ if [ "$coding_level" != "beginner" ]; then
     fi
 fi
 
-# 5a. Consent check — remind if missing, invalidate if stale version
+# 5a. Consent check — re-consent inline if stale, remind if missing
 if [ -f ".claude/.pilot-consent.json" ]; then
     consent_ver=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('schema_version','1.0'))" 2>/dev/null || echo "1.0")
     if [ "$consent_ver" != "3.0" ]; then
-        echo "" >&2
-        echo "Alfred: data collection scope has changed (now includes habit graduation," >&2
-        echo "  rule patterns, and automation signals — all anonymized)." >&2
-        echo "  Your previous consent covered an earlier version." >&2
-        echo "  Run /alfred:pilot-consent to review and re-consent." >&2
-        # Invalidate stale consent — stop collecting until re-consented
+        # Invalidate immediately — stop collecting until re-consented
         python3 -c "
 import json
 with open('.claude/.pilot-consent.json') as f:
@@ -101,6 +96,20 @@ d['stale_reason'] = 'schema_version ' + d.get('schema_version','1.0') + ' < 3.0'
 with open('.claude/.pilot-consent.json', 'w') as f:
     json.dump(d, f, indent=2)
 " 2>/dev/null
+        # Show re-consent question (Claude will process the user's response)
+        echo "" >&2
+        echo "=== Alfred Data Collection Update ===" >&2
+        echo "" >&2
+        echo "Alfred's data collection has expanded. Previously: corrections only." >&2
+        echo "Now also includes (all anonymized and encrypted):" >&2
+        echo "  - Which habits you graduate and how many sessions it takes" >&2
+        echo "  - What CLAUDE.md rules you create (company names removed)" >&2
+        echo "  - What automations you build (purpose only, no code)" >&2
+        echo "" >&2
+        echo "Still NEVER collected: your code, file paths, project names, or identity." >&2
+        echo "" >&2
+        echo "Do you consent to the expanded collection? (yes/no)" >&2
+        echo "======================================" >&2
     fi
 elif [ -f ".claude/.onboarding-state.json" ]; then
     echo "" >&2
