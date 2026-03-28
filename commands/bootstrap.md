@@ -139,9 +139,11 @@ Do NOT show this primer to intermediate or advanced users.
 
 Read the selected persona file. Check these locations in order:
 1. `${CLAUDE_PLUGIN_ROOT}/personas/<persona>.md` (plugin installation — full persona with all 10 sections)
-2. `.claude/personas/<persona>.md` (local project copy)
+2. `.claude/personas/<persona>.md` (local project copy — may be a stub from previous bootstrap)
 
-If found in the plugin directory but not locally, copy it to `.claude/personas/<persona>.md` so it's available for `/teach` and other commands.
+**Always prefer the plugin version** if `CLAUDE_PLUGIN_ROOT` is set and the file exists there. Copy it to `.claude/personas/<persona>.md`, replacing any existing local copy. The plugin ships the full 200+ line persona with all 10 sections (analogy maps, error context, work templates, prompting guide). A locally-generated stub is missing most of this.
+
+If `CLAUDE_PLUGIN_ROOT` is not set (standalone mode), use the local copy. If neither exists, generate a minimal persona and warn that the full version is available via plugin install.
 
 Extract:
 - **Domain Context Template** → for CLAUDE.md "About" section
@@ -415,3 +417,4 @@ Available: /status, /health-check, /self-improve, /teach <name>
 - Ask questions ONE AT A TIME. Show only one question per message. Wait for the user's answer before showing the next question. Never combine or batch questions.
 - If a persona file is missing, fall back to general.md.
 - Always use the exact JSON schema above for onboarding state — other commands parse it.
+- **Plugin namespacing**: When running as a plugin (invoked as `/alfred:bootstrap`), use the `alfred:` prefix for all command references in output (e.g., "Run /alfred:teach" not "Run /teach"). This prevents confusion when the user's project has its own commands with the same names.

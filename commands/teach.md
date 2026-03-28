@@ -232,3 +232,4 @@ Read the persona's Section 10 and select the specific tip text that best matches
 - If the user interrupts with "I know" or "skip", respect it and graduate immediately
 - If the user asks "why?", respect it and reset graduation progress for that pattern
 - Teaching a graduated pattern replays the full lesson but doesn't change graduation status
+- **Plugin namespacing**: When running as a plugin, command references in output should use the `alfred:` prefix (e.g., "Run /alfred:teach" not "Run /teach"). Check if `CLAUDE_PLUGIN_ROOT` is set or if this command was invoked as `/alfred:teach` — if so, use prefixed names in all output.
