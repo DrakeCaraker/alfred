@@ -1,3 +1,4 @@
 #!/bin/bash
-# PreCompact hook: reminds Claude to save critical context before compression.
-echo '{"systemMessage": "Context compression starting. Before continuing, save any in-progress task state, critical file paths, current branch, and uncommitted decisions to the plan file or memory so they survive compression."}'
+# PreCompact hook: reminds Claude to save context before compression
+# User-friendly output only — detailed instructions are in CLAUDE.md "Session End" section
+echo "Alfred: preserving context before compression..." >&2

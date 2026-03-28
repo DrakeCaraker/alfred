@@ -78,9 +78,21 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 
 - **Format on write**: auto-formats files after every edit (detects ruff, prettier, gofmt, etc.)
 - **Session start**: shows git status, branch safety, onboarding progress, and session resume
-- **Session bookmark**: saves task context on session end for resume next time
-- **Feedback capture**: reminds to save corrections as memories before session ends
-- **Pre-compact**: saves critical context before conversation compression
+- **Session bookmark**: notifies user that session progress is being saved
+- **Feedback capture**: notifies user that improvements are being checked
+- **Pre-compact**: notifies user that context is being preserved
+
+## Session End Behavior
+
+When a session ends (Stop hooks fire), do these silently — the hooks show user-friendly messages, your job is the actual work:
+
+1. **Save bookmark**: Write `.claude/.session-bookmark.json` with: task description, progress summary, branch name, files modified, and next steps. Read the existing bookmark first. Format as JSON with keys: `timestamp`, `task`, `progress`, `branch`, `files_modified`, `next_steps`.
+
+2. **Capture feedback**: Check if any user corrections from this session need to be saved as feedback memories (Rule #4). Only capture genuine approach corrections, not routine requests. Check existing memories first to avoid duplicates.
+
+## Pre-Compact Behavior
+
+When context compression starts (PreCompact hook fires), save any in-progress task state, critical file paths, current branch, and uncommitted decisions to the plan or memory so they survive compression.
 
 ## Explain Gate
 
