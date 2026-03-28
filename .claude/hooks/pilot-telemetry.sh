@@ -7,7 +7,7 @@ if [ ! -f ".claude/.pilot-consent.json" ]; then
     exit 0
 fi
 
-consented=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('consented', False))" 2>/dev/null)
+consented=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('consented', False))" ".claude/.pilot-consent.json" 2>/dev/null)
 if [ "$consented" != "True" ]; then
     exit 0
 fi
@@ -17,10 +17,13 @@ if [ ! -f ".claude/.pilot-identity.json" ]; then
     exit 0
 fi
 
-uuid=$(python3 -c "import json; print(json.load(open('.claude/.pilot-identity.json'))['anonymous_id'])" 2>/dev/null)
+uuid=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['anonymous_id'])" ".claude/.pilot-identity.json" 2>/dev/null)
 if [ -z "$uuid" ]; then
     exit 0
 fi
+
+# Detect Alfred root for script references
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
 # Calculate duration bucket
 duration_bucket="unknown"
@@ -44,9 +47,9 @@ persona="unknown"
 coding_level="unknown"
 code_complexity_level=1
 if [ -f ".claude/.onboarding-state.json" ]; then
-    persona=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('persona','unknown'))" 2>/dev/null)
-    coding_level=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('coding_level','unknown'))" 2>/dev/null)
-    code_complexity_level=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('code_complexity_level',1))" 2>/dev/null)
+    persona=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('persona','unknown'))" ".claude/.onboarding-state.json" 2>/dev/null)
+    coding_level=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('coding_level','unknown'))" ".claude/.onboarding-state.json" 2>/dev/null)
+    code_complexity_level=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('code_complexity_level',1))" ".claude/.onboarding-state.json" 2>/dev/null)
 fi
 
 # Determine branch type
@@ -67,10 +70,10 @@ telemetry_file=".pilot/telemetry/${uuid}.json"
 session_number=1
 if [ -f "$telemetry_file" ]; then
     session_number=$(python3 -c "
-import json
-d = json.load(open('$telemetry_file'))
+import json, sys
+d = json.load(open(sys.argv[1]))
 print(len(d.get('sessions', [])) + 1)
-" 2>/dev/null || echo 1)
+" "$telemetry_file" 2>/dev/null || echo 1)
 fi
 
 # Output systemMessage for Claude to act on
@@ -114,21 +117,15 @@ SYSMSG
 
 # Aggregate collective signals locally (no network call — fast)
 # These will be pushed on next session start by session-start.sh
-project_key=$(pwd | sed 's|/|-|g; s|^-||')
-memory_dir="$HOME/.claude/projects/-${project_key}/memory"
-# Also check parent project memory dir (some projects store memories at a higher level)
-parent_memory_dir="$HOME/.claude/projects/-$(echo "$HOME" | sed 's|/|-|g; s|^-||')/memory"
-
-# Find the memory dir that has feedback files
+# Scan all project memory dirs for feedback files (handles path variations)
 active_memory_dir=""
-if ls "$memory_dir"/feedback_*.md >/dev/null 2>&1; then
-    active_memory_dir="$memory_dir"
-elif ls "$parent_memory_dir"/feedback_*.md >/dev/null 2>&1; then
-    active_memory_dir="$parent_memory_dir"
-fi
+while IFS= read -r feedback_file; do
+    active_memory_dir=$(dirname "$feedback_file")
+    break
+done < <(find "$HOME/.claude/projects" -name "feedback_*.md" -type f 2>/dev/null | head -1)
 
-if [ -n "$active_memory_dir" ] && [ -f "collective/aggregator.py" ]; then
-    python3 collective/aggregator.py "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
+if [ -n "$active_memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
+    python3 "$ALFRED_ROOT/collective/aggregator.py" "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
 fi
 
 exit 0

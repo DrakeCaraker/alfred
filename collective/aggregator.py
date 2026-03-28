@@ -108,13 +108,7 @@ def process_memories(memory_dir: str) -> list[dict]:
         return signals
 
     # Detect project type from alfred.yaml if available
-    project_type = "unknown"
-    alfred_yaml = Path(".claude/alfred.yaml")
-    if alfred_yaml.exists():
-        content = alfred_yaml.read_text()
-        m = re.search(r'type:\s*(\w+)', content)
-        if m:
-            project_type = m.group(1)
+    project_type = os.environ.get("ALFRED_PROJECT_TYPE", "unknown")
 
     # Group by theme to count occurrences
     patterns_seen: dict[str, int] = {}

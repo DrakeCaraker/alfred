@@ -26,7 +26,7 @@ jobs:
       - name: Lint shell scripts (shellcheck)
         run: |
           sudo apt-get -qq install -y shellcheck > /dev/null 2>&1
-          shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh scripts/validate.sh scripts/collective-sync.sh
+          shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh scripts/validate.sh scripts/collective-sync.sh scripts/audit.sh
 
       - name: Make scripts executable
         run: chmod +x .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh
@@ -36,3 +36,6 @@ jobs:
 
       - name: Verify aggregate script runs cleanly
         run: bash scripts/aggregate-pilot.sh
+
+      - name: Security audit
+        run: bash scripts/audit.sh

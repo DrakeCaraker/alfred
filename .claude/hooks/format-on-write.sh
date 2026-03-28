@@ -6,10 +6,25 @@
 f=$(jq -r '.tool_input.file_path // empty')
 [ -z "$f" ] && exit 0
 
+# Auto-sync: if a .claude/commands/ or .claude/hooks/ file was edited, sync the mirror
+case "$f" in
+  */.claude/commands/*.md)
+    base=$(basename "$f")
+    dest="$(dirname "$f")/../../commands/$base"
+    [ -f "$dest" ] || dest="commands/$base"
+    cp "$f" "$dest" 2>/dev/null || true
+    ;;
+  */.claude/hooks/*.sh)
+    base=$(basename "$f")
+    dest="$(dirname "$f")/../../hooks/$base"
+    [ -f "$dest" ] || dest="hooks/$base"
+    cp "$f" "$dest" 2>/dev/null || true
+    ;;
+esac
+
 # Read preferred formatter from alfred.yaml (if configured)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-preferred=$("$REPO_ROOT/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+preferred=$("$ALFRED_ROOT/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
 
 # If a specific formatter is configured, use it directly
 if [ "$preferred" != "auto" ] && [ "$preferred" != "none" ]; then

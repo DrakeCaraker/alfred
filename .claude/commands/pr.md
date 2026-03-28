@@ -4,6 +4,12 @@ Standardized branch-to-PR workflow. Prevents pushing to main and enforces lint c
 
 ## Steps
 
+0. **Pre-flight check**: Run `make check` to verify all validations pass. If any check fails:
+   - Show the failure output
+   - Run `make fix` to attempt auto-repair
+   - Re-run `make check`
+   - If it still fails, show the remaining issues and stop — do not create a PR with broken code
+
 1. **Verify branch safety:**
    ```
    git branch --show-current

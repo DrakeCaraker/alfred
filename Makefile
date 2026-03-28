@@ -1,4 +1,4 @@
-.PHONY: setup test lint validate fix check
+.PHONY: setup test lint validate fix check audit
 
 ## setup: Activate git hooks and verify prerequisites
 setup:
@@ -17,7 +17,7 @@ test:
 lint:
 	@if command -v shellcheck >/dev/null 2>&1; then \
 		echo "Running shellcheck..."; \
-		shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh scripts/validate.sh scripts/collective-sync.sh 2>&1; \
+		shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/smoke-test.sh scripts/aggregate-pilot.sh scripts/pii-scanner.sh scripts/validate.sh scripts/collective-sync.sh scripts/audit.sh 2>&1; \
 		echo "shellcheck: passed"; \
 	else \
 		echo "shellcheck not installed — install with: brew install shellcheck (macOS) or apt-get install shellcheck (Linux)"; \
@@ -28,16 +28,22 @@ lint:
 validate:
 	@bash scripts/validate.sh
 
-## fix: Auto-fix deterministic issues (sync commands, permissions)
+## fix: Auto-fix deterministic issues (sync commands + hooks, permissions)
 fix:
 	@for f in .claude/commands/*.md; do \
 		base=$$(basename "$$f"); \
-		if [ -f "commands/$$base" ]; then \
-			cp "$$f" "commands/$$base"; \
-		fi; \
+		cp "$$f" "commands/$$base"; \
 	done
-	@chmod +x .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh 2>/dev/null || true
-	@echo "Fixed: command sync + permissions"
+	@for f in .claude/hooks/*.sh; do \
+		base=$$(basename "$$f"); \
+		cp "$$f" "hooks/$$base"; \
+	done
+	@chmod +x .claude/hooks/*.sh hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh 2>/dev/null || true
+	@echo "Fixed: command sync + hook sync + permissions"
+
+## audit: Deep security and quality checks (injection, secrets, cleanup traps)
+audit:
+	@bash scripts/audit.sh
 
 ## check: Run all validations (validate + lint + test)
 check: validate lint test

@@ -5,9 +5,8 @@
 echo "=== Alfred Session Warm-Up ===" >&2
 
 # Read configured main branch from alfred.yaml (default: main)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-MAIN_BRANCH=$("$REPO_ROOT/scripts/alfred-config.sh" git.main_branch main 2>/dev/null)
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+MAIN_BRANCH=$("$ALFRED_ROOT/scripts/alfred-config.sh" git.main_branch main 2>/dev/null)
 
 # Detect coding level for beginner-friendly output
 state_file=".claude/.onboarding-state.json"
@@ -84,18 +83,23 @@ if [ "$coding_level" != "beginner" ]; then
 fi
 
 # 5a. Unified consent (telemetry + collective signals)
-if [ -f ".claude/.onboarding-state.json" ] && [ ! -f ".claude/.pilot-consent.json" ]; then
+if [ ! -f ".claude/.pilot-consent.json" ]; then
     echo "" >&2
     echo "Alfred collects anonymized learning signals to improve team rules." >&2
     echo "Signals contain no code, file paths, or identifiers." >&2
     echo "See .pilot/README.md for full details. To opt out: /pilot-consent revoke" >&2
     # Grant consent by default (opt-out model)
     python3 -c "
-import json
+import json, uuid
 from datetime import date
 consent = {'consented': True, 'consent_date': str(date.today()), 'schema_version': '2.0'}
 with open('.claude/.pilot-consent.json', 'w') as f:
     json.dump(consent, f, indent=2)
+import os
+if not os.path.exists('.claude/.pilot-identity.json'):
+    identity = {'anonymous_id': str(uuid.uuid4()), 'created_date': str(date.today())}
+    with open('.claude/.pilot-identity.json', 'w') as f:
+        json.dump(identity, f, indent=2)
 " 2>/dev/null
 fi
 
@@ -183,6 +187,27 @@ if [ -f "$bookmark_file" ]; then
     echo "  Continue where you left off, or start fresh with /new-work" >&2
 fi
 
+# 8.5. Branch hygiene nudge
+if [ "$branch" != "$MAIN_BRANCH" ] && [ "$branch" != "HEAD" ]; then
+    commits_ahead=$(git rev-list --count "origin/$MAIN_BRANCH..HEAD" 2>/dev/null || echo 0)
+    if [ "$commits_ahead" -ge 10 ]; then
+        echo "" >&2
+        echo "Branch hygiene: '$branch' is $commits_ahead commits ahead of $MAIN_BRANCH." >&2
+        echo "  Consider opening a PR for what's done and starting a new branch." >&2
+    fi
+fi
+
+# 8.7. Contextual prompting tips (sessions 2-5 only, one per session)
+if [ "$session_count" -ge 2 ] && [ "$session_count" -le 5 ]; then
+    tip_index=$(( (session_count - 2) % 4 ))
+    case "$tip_index" in
+        0) echo "" >&2; echo "Prompting tip: Describe what you want, not how to build it. State constraints upfront." >&2 ;;
+        1) echo "" >&2; echo "Prompting tip: Say 'vet this' before committing to a plan. It catches issues early." >&2 ;;
+        2) echo "" >&2; echo "Prompting tip: Ask for 2-3 approaches with trade-offs before picking one." >&2 ;;
+        3) echo "" >&2; echo "Prompting tip: Say 'audit this' after completing work. It catches what you missed." >&2 ;;
+    esac
+fi
+
 # 9. Proactive recommendations
 if [ -f "$state_file" ]; then
     if [ "$graduated" = "0" ] && [ "$session_count" -le 3 ]; then
@@ -212,7 +237,7 @@ fi
 
 # 10. Push pending collective signals (silent, non-blocking)
 if [ -f ".claude/.collective-pending.json" ] && [ -n "${ALFRED_COLLECTIVE_KEY:-}" ]; then
-    bash scripts/collective-sync.sh push-pending >/dev/null 2>&1 &
+    bash "$ALFRED_ROOT/scripts/collective-sync.sh" push-pending >/dev/null 2>&1 &
 fi
 
 echo "" >&2

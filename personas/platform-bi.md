@@ -90,3 +90,14 @@
 | "Downstream dashboard broke" | Breaking schema change (renamed/removed column) | Add deprecation period, use column aliases for backward compatibility, notify consumers |
 | "dbt test failures on deploy" | Source data quality issue or stale seed data | Check source freshness, update seeds, add source tests to catch upstream issues |
 | "Model takes 30 minutes to build" | Inefficient SQL, missing clustering, or unnecessary full refresh | Optimize CTEs, add cluster keys, convert to incremental with merge strategy |
+
+## 10. Prompting Guide
+
+Effective prompting patterns for data platform and BI work:
+
+- **Describe the data contract, not the implementation.** "This table should contain one row per user per day with these columns..." lets Claude choose the best implementation.
+- **Specify scale and performance requirements.** "This query runs on 500M rows and must complete in <30 seconds" shapes the approach (partitioning, indexing, materialization).
+- **Ask for idempotency.** "This pipeline should be safe to re-run without creating duplicates" is a critical requirement to state upfront.
+- **Request failure modes.** "What happens if the upstream source is late, schema changes, or returns nulls?" surfaces edge cases.
+- **Specify SLAs.** "Data must be fresh within 4 hours of the source event" defines the pipeline design.
+- **Ask for monitoring.** "How would we detect if this pipeline silently produced wrong data?" prevents silent failures.

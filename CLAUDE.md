@@ -12,7 +12,7 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 3. **Read before planning.** Verify by reading actual code before proposing any changes.
 4. **Capture corrections immediately.** When redirected ("no", "don't", "stop", "instead"), save a feedback memory before continuing with the corrected approach.
 5. **Vet before committing to plans.** Before calling ExitPlanMode or claiming a plan is complete, run the /vet checklist: verify assumptions against actual code, identify missing failure modes, and flag remaining uncertainties. Do not present unvetted plans as ready.
-6. **Sync command copies.** After editing `.claude/commands/*.md`, always copy to `commands/` — both directories must match. CI will reject mismatches.
+6. **Sync command and hook copies.** After editing `.claude/commands/*.md` or `.claude/hooks/*.sh`, always copy to `commands/` and `hooks/` respectively — both directories must match. CI will reject mismatches. Run `make fix` to sync automatically.
 7. **Check all output touchpoints after terminology changes.** When renaming user-facing terms, grep `.sh` files, command `.md` templates, and generated file templates. Shell hooks are the highest-frequency touchpoint and easiest to miss.
 
 ## Guardrails
@@ -43,7 +43,11 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 
 ## Running
 
-No test/lint commands detected yet. Add them here as your project grows.
+```bash
+make check    # Full validation: validate + lint + test (123 checks)
+make audit    # Deep security lint: injection, secrets, traps, sync
+make fix      # Auto-fix: sync commands + hooks + permissions
+```
 
 ## Tools
 
@@ -68,6 +72,7 @@ No test/lint commands detected yet. Add them here as your project grows.
 | /safe-refactor | Test-gated refactoring with rollback |
 | /pr | Branch → commit → push → PR workflow |
 | /vet | Pressure-test a plan before committing to it |
+| /audit | Security and quality audit with guided fixes |
 
 ## Hooks
 
@@ -83,13 +88,24 @@ When you encounter a slash command for a habit you haven't graduated yet, briefl
 
 ## Smart Suggestions
 
-Suggest `/vet` when:
-- About to exit plan mode — always vet first (enforced by Rule #5)
-- About to create a PR from a planned implementation — verify implementation matches the plan
-- A plan has 5+ steps — complexity warrants pressure-testing
-- A plan touches multiple files or systems — cross-cutting risk
+Every Alfred command should surface at the right moment. Full trigger list is in `skills/smart-suggestions/SKILL.md`. Key suggestions:
 
-Say: *"This plan has some complexity — want me to pressure-test it before we proceed?"*
+| Trigger | Suggest | Why |
+|---------|---------|-----|
+| Working on main | `/new-work` | Prevent direct-to-main changes |
+| 30+ min without commit | `/commit` | Create a rollback checkpoint |
+| Work seems complete | `/pr` | Validate, push, and open PR in one step |
+| CI failing | `/ci-fix` | Automates the fix-and-retest loop |
+| About to exit plan mode | `/vet` | Check assumptions before building (Rule #5) |
+| Before creating a PR | `/audit` | 5-second security sweep |
+| 5+ feedback memories | `/self-improve` | Promote corrections to permanent rules |
+| 10+ commits on branch | Split into PRs | Smaller PRs are easier to review |
+| Building data transport | Ask security reqs | "Who has access? Need encryption?" |
+| Refactoring without tests | `/safe-refactor` | Test-gated changes with rollback |
+| All habits graduated | `/health-check` | What to improve next |
+| New files in results/ | `/experiment-summary` | Trace results to source code |
+
+**Rules:** One suggestion per response. Never repeat a dismissed suggestion. Never auto-run destructive commands. If user says "stop suggesting" — respect it for the session.
 
 ## Do NOT
 

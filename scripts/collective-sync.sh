@@ -3,7 +3,8 @@
 #
 # Usage:
 #   collective-sync.sh init                  Create the private repo
-#   collective-sync.sh contribute <signals>  Encrypt and push local signals
+#   collective-sync.sh contribute <signals>  Encrypt and push local signals (auto-detects path)
+#   collective-sync.sh submit <signals>      Submit signals as GitHub issue (no key needed)
 #   collective-sync.sh ingest                Decrypt and display collective signals
 #   collective-sync.sh push-pending          Push .collective-pending.json (called by session-start hook)
 #   collective-sync.sh status                Show repo info and signal count
@@ -14,6 +15,7 @@
 set -euo pipefail
 
 COLLECTIVE_REPO="${ALFRED_COLLECTIVE_REPO:-DrakeCaraker/alfred-collective}"
+ALFRED_PUBLIC_REPO="${ALFRED_PUBLIC_REPO:-DrakeCaraker/alfred}"
 PENDING_FILE=".claude/.collective-pending.json"
 
 # --- Helpers ---
@@ -54,12 +56,18 @@ today() {
 # --- Commands ---
 
 cmd_init() {
+  local tmp_dir=""
+  cleanup() { rm -rf "$tmp_dir"; }
+  trap cleanup EXIT
+
   check_gh_auth
 
   # Check if repo already exists
   if gh repo view "$COLLECTIVE_REPO" >/dev/null 2>&1; then
     echo "Collective repo already exists: $COLLECTIVE_REPO"
     echo "URL: https://github.com/$COLLECTIVE_REPO"
+    cleanup
+    trap - EXIT
     return 0
   fi
 
@@ -68,7 +76,6 @@ cmd_init() {
   gh repo create "$COLLECTIVE_REPO" --private --description "Alfred Collective Learning Signals (encrypted)" 2>&1
 
   # Clone, add structure, push
-  local tmp_dir
   tmp_dir=$(mktemp -d)
   clone_repo "$tmp_dir"
   mkdir -p "$tmp_dir/signals"
@@ -126,7 +133,8 @@ GITIGNORE
   git push >/dev/null 2>&1
   cd - >/dev/null
 
-  rm -rf "$tmp_dir"
+  cleanup
+  trap - EXIT
 
   echo ""
   echo "Collective repo created: https://github.com/$COLLECTIVE_REPO"
@@ -137,18 +145,82 @@ GITIGNORE
   echo "  3. Run /collective contribute to push your first signals"
 }
 
+cmd_submit() {
+  local signals_file="${1:-}"
+  if [ -z "$signals_file" ] || [ ! -f "$signals_file" ]; then
+    die "Usage: collective-sync.sh submit <signals.json>"
+  fi
+
+  check_gh_auth
+
+  echo "Submitting anonymized signals to Alfred collective..."
+
+  # Validate signal format
+  local count
+  count=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+signals = data.get('signals', [])
+# Verify all signals have required fields
+for s in signals:
+    assert 'category' in s, 'missing category'
+    assert 'pattern' in s, 'missing pattern'
+    assert len(s['pattern']) <= 200, 'pattern too long'
+print(len(signals))
+" "$signals_file" 2>&1) || die "Invalid signal format: $count"
+
+  # Read the JSON content
+  local body
+  body=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+# Add metadata
+data['submitted_at'] = '$(date +%Y-%m-%d)'
+print(json.dumps(data, indent=2))
+" "$signals_file")
+
+  # Create a GitHub issue on the public Alfred repo
+  gh issue create \
+    --repo "$ALFRED_PUBLIC_REPO" \
+    --title "collective-signal: $count signals $(date +%Y-%m-%d)" \
+    --label "collective-signal" \
+    --body "\`\`\`json
+$body
+\`\`\`" >/dev/null 2>&1
+
+  echo "Submitted $count anonymized signals to Alfred collective."
+  echo ""
+  echo "Signals are anonymized — no code, paths, or identifiers."
+  echo "A maintainer will review and ingest them."
+}
+
 cmd_contribute() {
+  local tmp_dir=""
+  local merged_file=""
+  cleanup() { rm -rf "$tmp_dir" "$merged_file"; }
+  trap cleanup EXIT
+
   local signals_file="${1:-}"
   if [ -z "$signals_file" ] || [ ! -f "$signals_file" ]; then
     die "Usage: collective-sync.sh contribute <signals.json>"
   fi
 
   check_gh_auth
-  check_key
 
+  # Auto-detect contribution path
+  if [ -z "${ALFRED_COLLECTIVE_KEY:-}" ] || ! gh repo view "$COLLECTIVE_REPO" >/dev/null 2>&1; then
+    # Community path: submit via GitHub issue on public repo
+    cmd_submit "$signals_file"
+    cleanup
+    trap - EXIT
+    return 0
+  fi
+
+  # Owner path: direct encrypted push (continues below)
   echo "Syncing with collective repo..."
 
-  local tmp_dir
   tmp_dir=$(mktemp -d)
   clone_repo "$tmp_dir"
   mkdir -p "$tmp_dir/signals"
@@ -156,7 +228,6 @@ cmd_contribute() {
   local batch_date
   batch_date=$(today)
   local enc_file="$tmp_dir/signals/${batch_date}.enc"
-  local merged_file
   merged_file=$(mktemp)
 
   # If today's batch exists, decrypt and merge
@@ -169,15 +240,20 @@ cmd_contribute() {
     python3 -c "
 import json, sys, hashlib
 
+existing_file = sys.argv[1]
+signals_file = sys.argv[2]
+batch_date = sys.argv[3]
+merged_file = sys.argv[4]
+
 def signal_id(s):
     key = s.get('category','') + ':' + s.get('pattern','')[:100].lower()
     return hashlib.sha256(key.encode()).hexdigest()[:16]
 
-with open('$existing_file') as f:
+with open(existing_file) as f:
     existing_data = json.load(f)
 existing = {signal_id(s): s for s in existing_data.get('signals', [])}
 
-with open('$signals_file') as f:
+with open(signals_file) as f:
     new_data = json.load(f)
 
 added = 0
@@ -192,31 +268,34 @@ for s in new_data.get('signals', []):
         updated += 1
     else:
         s['global_occurrences'] = s.get('local_occurrences', 1)
-        s['contributed_at'] = '$batch_date'
+        s['contributed_at'] = batch_date
         existing[sid] = s
         added += 1
 
 output = {
     'schema_version': '1.0',
-    'last_updated': '$batch_date',
+    'last_updated': batch_date,
     'signals': list(existing.values()),
 }
-with open('$merged_file', 'w') as f:
+with open(merged_file, 'w') as f:
     json.dump(output, f, indent=2)
 print(f'{added} new, {updated} updated, {len(existing)} total')
-"
+" "$existing_file" "$signals_file" "$batch_date" "$merged_file"
     rm -f "$existing_file"
   else
     # No existing batch — use new signals directly
     cp "$signals_file" "$merged_file"
     local count
-    count=$(python3 -c "import json; print(len(json.load(open('$merged_file')).get('signals',[])))")
+    count=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    print(len(json.load(f).get('signals',[])))
+" "$merged_file")
     echo "$count new, 0 updated, $count total"
   fi
 
   # Encrypt and commit
   encrypt_file "$merged_file" "$enc_file"
-  rm -f "$merged_file"
 
   cd "$tmp_dir"
   git add "signals/${batch_date}.enc"
@@ -224,7 +303,8 @@ print(f'{added} new, {updated} updated, {len(existing)} total')
   git push >/dev/null 2>&1
   cd - >/dev/null
 
-  rm -rf "$tmp_dir"
+  cleanup
+  trap - EXIT
 
   echo "Encrypted signals pushed to $COLLECTIVE_REPO"
   echo ""
@@ -238,6 +318,8 @@ cmd_push_pending() {
   fi
 
   if [ -z "${ALFRED_COLLECTIVE_KEY:-}" ]; then
+    # No encryption key — submit via issue instead
+    cmd_submit "$PENDING_FILE" >/dev/null 2>&1 && rm -f "$PENDING_FILE"
     exit 0
   fi
 
@@ -254,17 +336,20 @@ cmd_push_pending() {
 }
 
 cmd_ingest() {
+  local tmp_dir=""
+  local all_signals=""
+  cleanup() { rm -rf "$tmp_dir" "$all_signals"; }
+  trap cleanup EXIT
+
   check_gh_auth
   check_key
 
   echo "Fetching collective signals..."
 
-  local tmp_dir
   tmp_dir=$(mktemp -d)
   clone_repo "$tmp_dir"
 
   # Decrypt all batches and merge
-  local all_signals
   all_signals=$(mktemp)
   echo '{"signals":[]}' > "$all_signals"
 
@@ -279,17 +364,20 @@ cmd_ingest() {
 
     # Merge into all_signals
     python3 -c "
-import json, hashlib
+import json, sys, hashlib
+
+all_signals_file = sys.argv[1]
+dec_file = sys.argv[2]
 
 def signal_id(s):
     key = s.get('category','') + ':' + s.get('pattern','')[:100].lower()
     return hashlib.sha256(key.encode()).hexdigest()[:16]
 
-with open('$all_signals') as f:
+with open(all_signals_file) as f:
     all_data = json.load(f)
 existing = {signal_id(s): s for s in all_data.get('signals', [])}
 
-with open('$dec_file') as f:
+with open(dec_file) as f:
     batch = json.load(f)
 
 for s in batch.get('signals', []):
@@ -303,17 +391,19 @@ for s in batch.get('signals', []):
         existing[sid] = s
 
 output = {'signals': list(existing.values())}
-with open('$all_signals', 'w') as f:
+with open(all_signals_file, 'w') as f:
     json.dump(output, f)
-"
+" "$all_signals" "$dec_file"
     rm -f "$dec_file"
   done
 
   rm -rf "$tmp_dir"
+  tmp_dir=""
 
   if [ "$found" -eq 0 ]; then
     echo "No signals found in collective."
-    rm -f "$all_signals"
+    cleanup
+    trap - EXIT
     return 0
   fi
 
@@ -321,7 +411,9 @@ with open('$all_signals', 'w') as f:
   python3 -c "
 import json, sys
 
-with open('$all_signals') as f:
+all_signals_file = sys.argv[1]
+
+with open(all_signals_file) as f:
     data = json.load(f)
 signals = data.get('signals', [])
 
@@ -363,17 +455,24 @@ print(f'Total: {len(signals)} signals ({len(strong)} recommended, {len(emerging)
 print()
 print('To adopt a recommended signal, add it as a rule in your CLAUDE.md')
 print('or run /self-improve to auto-promote.')
-"
-  rm -f "$all_signals"
+" "$all_signals"
+  cleanup
+  trap - EXIT
 }
 
 cmd_status() {
+  local tmp_dir=""
+  cleanup() { rm -rf "$tmp_dir"; }
+  trap cleanup EXIT
+
   echo "Collective repo: $COLLECTIVE_REPO"
 
   if ! gh repo view "$COLLECTIVE_REPO" >/dev/null 2>&1; then
     echo "Status: not created"
     echo ""
     echo "Run: /collective init"
+    cleanup
+    trap - EXIT
     return 0
   fi
 
@@ -383,7 +482,6 @@ cmd_status() {
   check_gh_auth
 
   # Count batches
-  local tmp_dir
   tmp_dir=$(mktemp -d)
   clone_repo "$tmp_dir"
 
@@ -395,7 +493,8 @@ cmd_status() {
     latest=$(basename "$enc_file" .enc)
   done
 
-  rm -rf "$tmp_dir"
+  cleanup
+  trap - EXIT
 
   echo "Batches: $batch_count"
   if [ -n "$latest" ]; then
@@ -404,7 +503,11 @@ cmd_status() {
 
   if [ -f "$PENDING_FILE" ]; then
     local pending_count
-    pending_count=$(python3 -c "import json; print(len(json.load(open('$PENDING_FILE')).get('signals',[])))" 2>/dev/null || echo "?")
+    pending_count=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    print(len(json.load(f).get('signals',[])))
+" "$PENDING_FILE" 2>/dev/null || echo "?")
     echo "Pending (local): $pending_count signals"
   fi
 }
@@ -417,14 +520,16 @@ shift || true
 case "$cmd" in
   init)          cmd_init ;;
   contribute)    cmd_contribute "$@" ;;
+  submit)        cmd_submit "$@" ;;
   push-pending)  cmd_push_pending ;;
   ingest)        cmd_ingest "$@" ;;
   status)        cmd_status ;;
   *)
-    echo "Usage: collective-sync.sh <init|contribute|push-pending|ingest|status>"
+    echo "Usage: collective-sync.sh <init|contribute|submit|push-pending|ingest|status>"
     echo ""
     echo "  init                 Create the private collective repo"
-    echo "  contribute <file>    Encrypt and push signals to the repo"
+    echo "  contribute <file>    Encrypt and push signals to the repo (auto-detects path)"
+    echo "  submit <file>        Submit signals as a GitHub issue (no key needed)"
     echo "  push-pending         Push pending signals (called by session-start hook)"
     echo "  ingest               Decrypt and display collective signals"
     echo "  status               Show repo info"

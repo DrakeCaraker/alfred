@@ -1,12 +1,50 @@
 #!/usr/bin/env bash
-# Pre-commit hook: PII guard and schema validation for .pilot/ files
+# Pre-commit hook: sync validation + PII guard for .pilot/ files
 # Install: git config core.hooksPath .githooks
 
 SCANNER="scripts/pii-scanner.sh"
 ERRORS=0
 
-# Only check staged .pilot/ files
-staged_pilot=$(git diff --cached --name-only --diff-filter=ACM | grep '^\.pilot/' || true)
+# --- Sync check: commands and hooks must match ---
+staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Check if any .claude/commands/ or .claude/hooks/ files are staged without their mirror
+for f in $(echo "$staged_files" | grep '^\.claude/commands/.*\.md$' || true); do
+  base=$(basename "$f")
+  if [ -f "commands/$base" ]; then
+    staged_mirror=$(echo "$staged_files" | grep "^commands/$base$" || true)
+    if [ -z "$staged_mirror" ]; then
+      if ! diff -q "$f" "commands/$base" > /dev/null 2>&1; then
+        echo "BLOCKED: $f is staged but commands/$base is not in sync"
+        echo "  Run: make fix"
+        ERRORS=$((ERRORS + 1))
+      fi
+    fi
+  fi
+done
+
+for f in $(echo "$staged_files" | grep '^\.claude/hooks/.*\.sh$' || true); do
+  base=$(basename "$f")
+  if [ -f "hooks/$base" ]; then
+    staged_mirror=$(echo "$staged_files" | grep "^hooks/$base$" || true)
+    if [ -z "$staged_mirror" ]; then
+      if ! diff -q "$f" "hooks/$base" > /dev/null 2>&1; then
+        echo "BLOCKED: $f is staged but hooks/$base is not in sync"
+        echo "  Run: make fix"
+        ERRORS=$((ERRORS + 1))
+      fi
+    fi
+  fi
+done
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo ""
+  echo "$ERRORS sync issue(s). Run 'make fix && git add .' then retry."
+  exit 1
+fi
+
+# --- PII guard: only check staged .pilot/ files ---
+staged_pilot=$(echo "$staged_files" | grep '^\.pilot/' || true)
 
 if [ -z "$staged_pilot" ]; then
     exit 0

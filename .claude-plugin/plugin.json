@@ -1,7 +1,7 @@
 {
   "name": "alfred",
   "description": "AI coding assistant that teaches development habits in your domain's language, then turns your corrections into permanent rules and automated guards.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Drake Caraker",
     "email": "drake.caraker@ouraring.com"
@@ -15,7 +15,10 @@
     "code-quality",
     "guardrails",
     "onboarding",
+    "habits",
     "data-science",
-    "ml-ops"
+    "ml-ops",
+    "personas",
+    "collective-learning"
   ]
 }
