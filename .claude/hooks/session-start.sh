@@ -82,6 +82,38 @@ if [ "$coding_level" != "beginner" ]; then
     fi
 fi
 
+# 4.5. Plugin update check (at most once per day, non-blocking)
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "$ALFRED_ROOT/.claude-plugin/plugin.json" ]; then
+    installed_ver=$(python3 -c "import json; print(json.load(open('$ALFRED_ROOT/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "unknown")
+    cache_file="$HOME/.claude/.alfred-update-check"
+    should_check=false
+
+    if [ ! -f "$cache_file" ]; then
+        should_check=true
+    else
+        last_check=$(stat -f %m "$cache_file" 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null || echo 0)
+        now=$(date +%s)
+        if [ $((now - last_check)) -gt 86400 ]; then
+            should_check=true
+        fi
+    fi
+
+    if [ "$should_check" = true ]; then
+        # Background fetch — non-blocking, won't slow down session start
+        (curl -s --max-time 5 "https://raw.githubusercontent.com/DrakeCaraker/alfred/main/.claude-plugin/plugin.json" 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])" > "$cache_file" 2>/dev/null) &
+    fi
+
+    # Show notification from previous check (if cached version differs)
+    if [ -f "$cache_file" ]; then
+        latest_ver=$(cat "$cache_file" 2>/dev/null)
+        if [ -n "$latest_ver" ] && [ "$latest_ver" != "$installed_ver" ] && [ "$latest_ver" != "unknown" ]; then
+            echo "" >&2
+            echo "Alfred update available: $installed_ver → $latest_ver" >&2
+            echo "  Update: /plugin marketplace remove alfred-marketplace && /plugin marketplace add https://github.com/DrakeCaraker/alfred.git && /plugin install alfred@alfred-marketplace && /reload-plugins" >&2
+        fi
+    fi
+fi
+
 # 5a. Consent check — re-consent inline if stale, remind if missing
 if [ -f ".claude/.pilot-consent.json" ]; then
     consent_ver=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('schema_version','1.0'))" 2>/dev/null || echo "1.0")
