@@ -30,7 +30,7 @@ From here, you just work. Alfred handles version control, formatting, and safety
 **You write SQL or scripts, but you're not a software engineer.** Alfred adds the engineering practices you're missing — version control, testing, reproducible environments — without making you learn them upfront. It translates each concept into your domain: "saving a version of your spreadsheet" instead of "committing to a branch."
 → [Quick start](#get-started)
 
-**You're an experienced developer.** Skip the teaching. Alfred gives you pre-configured hooks (auto-format, CI gate, drift detection), 11 slash commands, and a self-improving rule system. Point it at a new repo or an existing one — it audits what's there, fills in what's missing, and starts in silent mode. Every correction you make gets captured; repeat it enough and Alfred promotes it into a permanent rule or an automated hook that enforces it without you. Over time, your environment reshapes itself around how you actually work.
+**You're an experienced developer.** Skip the teaching. Alfred gives you pre-configured hooks (auto-format, CI gate, drift detection), 19 slash commands, and a self-improving rule system. Point it at a new repo or an existing one — it audits what's there, fills in what's missing, and starts in silent mode. Every correction you make gets captured; repeat it enough and Alfred promotes it into a permanent rule or an automated hook that enforces it without you. Over time, your environment reshapes itself around how you actually work.
 → [System design docs](docs/AI_ASSISTED_DEV_GUIDE.md)
 
 ---
@@ -52,7 +52,17 @@ Alfred runs on [Claude Code](https://docs.anthropic.com/en/docs/claude-code), An
 **If you've never used Claude Code:**
 Follow the [setup guide](docs/GETTING_STARTED.md) — it walks through everything from installation to your first project, step by step.
 
-**Starting a new project:**
+**Install as a Claude Code plugin** (recommended):
+
+In any Claude Code session:
+```
+/plugin marketplace add DrakeCaraker/alfred
+/plugin install alfred@DrakeCaraker/alfred
+```
+
+Then open your project and type `/bootstrap`. Alfred works in any project.
+
+**Starting a new project** (alternative — clones Alfred as a template):
 
 ```bash
 git clone https://github.com/DrakeCaraker/alfred.git my-project
@@ -73,13 +83,7 @@ claude
 
 Then type `/bootstrap` and answer 3 questions. Alfred audits what's already there, fills in what's missing, and sets up guardrails around your existing work. That's it. Start working.
 
-After `/bootstrap`, three commands cover 90% of daily use:
-
-| Command | When to use it |
-|---------|---------------|
-| `/new-work` | Starting a task — creates a branch, scopes the work |
-| `/commit` | Saving progress — checks for dangerous files first |
-| `/teach` | Curious about a habit — delivers a lesson in your domain's language |
+After `/bootstrap`, three commands cover 90% of daily use: **`/new-work`** (start a task), **`/commit`** (save progress), **`/teach`** (learn a habit).
 
 <details>
 <summary>All commands</summary>
@@ -90,17 +94,18 @@ After `/bootstrap`, three commands cover 90% of daily use:
 | `/github-account-setup` | Connect to GitHub or create an account |
 | `/teach` | Next habit lesson — or `/teach all` for progress, `/teach <name>` to revisit |
 | `/status` | Graduated habits, level, next steps |
-| `/commit` | Safe commit — blocks binaries, warns on large files |
+| `/commit` | Safe commit — runs `make check`, blocks binaries, warns on large files |
 | `/new-work` | Scoped branch with task list |
 | `/ci-fix` | Auto-fix loop: lint, format, typecheck, test until green |
 | `/self-improve` | Promote recurring corrections to permanent rules |
 | `/health-check` | Project maturity assessment (5 levels) |
 | `/safe-refactor` | One change at a time, auto-rollback on test failure |
 | `/experiment-summary` | Inventory results with provenance |
-| `/pr` | Push and open a pull request |
+| `/pr` | Push and open a pull request (runs `make check` first) |
 | `/vet` | Pressure-test a plan before committing to it |
+| `/audit` | Security and quality audit with guided fixes |
 | `/persona` | View or change your active persona |
-| `/collective preview` | Preview collective team corrections |
+| `/collective` | Preview, contribute, or ingest shared learning signals |
 | `/pilot-consent` | View what's collected, opt in or out |
 | `/pilot-report` | Submit feedback (PII-scrubbed) |
 | `/pilot-delete` | Delete your data locally or from the repo |
@@ -154,6 +159,19 @@ The end state: a working environment that was shaped by your own decisions — w
 
 ---
 
+## Developer tools
+
+```bash
+make check    # Full CI-equivalent validation (validate + lint + test)
+make audit    # Security lint (injection, secrets, cleanup traps, sync)
+make fix      # Auto-fix: sync commands + hooks + permissions
+```
+
+Full automation details: [`docs/WORKFLOW_GUIDE.md`](docs/WORKFLOW_GUIDE.md)
+Prompting tips: [`docs/PROMPTING_GUIDE.md`](docs/PROMPTING_GUIDE.md)
+
+---
+
 ## Personas
 
 | # | Persona | Example guardrail |
@@ -182,6 +200,8 @@ One person's discovery becomes everyone's guardrail.
 **Adoption friction is self-correcting.** If anyone finds Alfred too verbose, they say "I know" and it goes silent for that habit. No team-wide configuration needed.
 
 **Measuring adoption**: Opt-in pilot telemetry tracks which habits are graduating and which commands are used — without collecting code, file paths, or PII. Run `scripts/aggregate-pilot.sh` for a team summary. See [`.pilot/README.md`](.pilot/README.md) for the full privacy policy.
+
+**Collective learning**: Corrections from individual users are anonymized, encrypted, and shared as collective signals. When 3+ users hit the same correction, it becomes a recommended team rule. Contributors need zero setup — signals are encrypted with a public key and submitted automatically. Run `/collective ingest` to see what the team is learning.
 
 **Project health**: `/health-check` gives leaders a 5-level maturity snapshot — what's in place, what's missing, what to prioritize.
 
