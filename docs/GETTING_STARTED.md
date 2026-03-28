@@ -40,50 +40,56 @@ The version number may differ — any number is fine.
 
 ## Step 3: Install Claude Code
 
-In your terminal, type:
+Claude Code is the AI tool Alfred runs on. Install it once:
+
+**Option A — Direct install (recommended):**
+
+Visit [docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code) and follow the installation instructions for your system.
+
+**Option B — Via npm:**
 
 ```
 $ npm install -g @anthropic-ai/claude-code
 ```
 
-`npm` is Node's package installer — it was included when you installed Node.js.
-
 Verify it worked:
 
 ```
 $ claude --version
-1.0.0
 ```
-
-> **Other install options**: Claude Code is also available as a [desktop app and web app](https://docs.anthropic.com/en/docs/claude-code/getting-started). The terminal version is what Alfred uses in its examples, but any version works.
 
 ## Step 4: Get Alfred
 
-**If you have git** (most Mac and Linux systems do):
+**Option A — Install as a plugin (recommended):**
+
+Start Claude Code in any project:
+```
+$ claude
+```
+
+Then inside Claude Code, type:
+```
+/plugin marketplace add DrakeCaraker/alfred
+/plugin install alfred@DrakeCaraker/alfred
+```
+
+That's it — Alfred is now available in all your projects. Skip to Step 6.
+
+**Option B — Clone as a template project:**
+
+If you want to start a brand new project based on Alfred:
 
 ```
 $ git clone https://github.com/DrakeCaraker/alfred.git my-project
 $ cd my-project
-$ git config core.hooksPath .githooks
+$ make setup
 ```
 
-`cd` means "change directory" — it moves you into the folder you just downloaded. The last command activates Alfred's safety checks — they block accidental pushes to the main version of your project and prevent large binary files from being saved.
-
-**If you don't have git** (common on Windows):
-
-1. Go to [github.com/DrakeCaraker/alfred](https://github.com/DrakeCaraker/alfred)
-2. Click the green **Code** button, then **Download ZIP**
-3. Unzip the file and rename the folder to `my-project`
-4. In your terminal, navigate to that folder:
-   ```
-   $ cd path/to/my-project
-   ```
-
-> **Tip**: On Mac, type `cd ` (with a space) then drag the folder from Finder into the terminal window. On Windows, right-click the folder in Explorer and choose "Open in Terminal."
-
-> **What the safety checks do**: Alfred runs several things automatically in the background — formatting your code after every edit, showing project status when you start a session, saving your place when a session ends, and preserving context when conversations get long. You don't need to set these up; they activate when you run `/bootstrap`.
+> `make setup` activates Alfred's safety checks — they block accidental pushes to the main version of your project and prevent large binary files from being saved.
 
 ## Step 5: Start Claude Code
+
+> If you installed via plugin (Option A above), you're already in Claude Code. Skip to Step 6.
 
 Type:
 
@@ -154,5 +160,7 @@ Three things you can try:
 - **Start working** — type what you want to do in plain language, like "create a Python script that reads a CSV file"
 - **Run `/teach`** — learn your first development pattern
 - **Run `/status`** — see your progress
+
+> **Want to level up fast?** Read the [Prompting Guide](PROMPTING_GUIDE.md) for tips on getting the best results from Claude Code in your domain.
 
 See the [README](../README.md) for the full list of commands and how Alfred adapts to you.
