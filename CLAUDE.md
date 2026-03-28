@@ -12,7 +12,7 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 3. **Read before planning.** Verify by reading actual code before proposing any changes.
 4. **Capture corrections immediately.** When redirected ("no", "don't", "stop", "instead"), save a feedback memory before continuing with the corrected approach.
 5. **Vet before committing to plans.** Before calling ExitPlanMode or claiming a plan is complete, run the /vet checklist: verify assumptions against actual code, identify missing failure modes, and flag remaining uncertainties. Do not present unvetted plans as ready.
-6. **Sync command copies.** After editing `.claude/commands/*.md`, always copy to `commands/` — both directories must match. CI will reject mismatches.
+6. **Sync command and hook copies.** After editing `.claude/commands/*.md` or `.claude/hooks/*.sh`, always copy to `commands/` and `hooks/` respectively — both directories must match. CI will reject mismatches. Run `make fix` to sync automatically.
 7. **Check all output touchpoints after terminology changes.** When renaming user-facing terms, grep `.sh` files, command `.md` templates, and generated file templates. Shell hooks are the highest-frequency touchpoint and easiest to miss.
 
 ## Guardrails
