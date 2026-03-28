@@ -141,6 +141,44 @@ if [ "$errors" -eq "$prev_errors" ]; then
   echo "No secrets found"
 fi
 
+# --- 8. Doc-code consistency ---
+echo ""
+echo "==> Checking doc-code consistency..."
+prev_errors=$errors
+
+# Command count in README should match commands/ directory
+readme_cmds=$(grep -c '| `/[a-z]' README.md 2>/dev/null || echo 0)
+actual_cmds=$(ls commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+if [ "$readme_cmds" -ne "$actual_cmds" ]; then
+  fail "README lists $readme_cmds commands but commands/ has $actual_cmds files"
+fi
+
+# CLAUDE.md command table should mention /audit
+if ! grep -q '/audit' CLAUDE.md 2>/dev/null; then
+  fail "CLAUDE.md command table missing /audit"
+fi
+
+# All hooks in .claude/hooks/ should be listed in CLAUDE.md
+for f in .claude/hooks/*.sh; do
+  name=$(basename "$f" .sh)
+  # Convert to a search-friendly form (session-start → session.start or session)
+  short=$(echo "$name" | cut -d- -f1)
+  if ! grep -qi "$short" CLAUDE.md 2>/dev/null; then
+    warn "CLAUDE.md may not mention hook: $name"
+  fi
+done
+
+# Version consistency: plugin.json and package.json should match
+plugin_ver=$(python3 -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "?")
+package_ver=$(python3 -c "import json; print(json.load(open('package.json'))['version'])" 2>/dev/null || echo "?")
+if [ "$plugin_ver" != "$package_ver" ]; then
+  fail "Version mismatch: plugin.json=$plugin_ver, package.json=$package_ver"
+fi
+
+if [ "$errors" -eq "$prev_errors" ]; then
+  echo "All doc-code checks passed"
+fi
+
 # --- Result ---
 echo ""
 echo "================================="

@@ -80,6 +80,7 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 - **Session start**: shows git status, branch safety, onboarding progress, and session resume
 - **Session bookmark**: notifies user that session progress is being saved
 - **Feedback capture**: notifies user that improvements are being checked
+- **Pilot telemetry**: records session data and aggregates collective signals on session end
 - **Pre-compact**: notifies user that context is being preserved
 
 ## Session End Behavior
