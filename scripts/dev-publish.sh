@@ -39,19 +39,24 @@ else
     echo "   Marketplace not cached — install via: /plugin marketplace add $REPO_URL"
 fi
 
-# 3. Refresh plugin cache (copy from marketplace)
+# 3. Refresh ALL plugin cache versions (copy from marketplace)
 echo "3. Refreshing plugin cache..."
-plugin_dir=$(find "$PLUGIN_CACHE" -name "plugin.json" -path "*/alfred/*" 2>/dev/null | head -1 | xargs dirname 2>/dev/null | xargs dirname 2>/dev/null || echo "")
-if [ -n "$plugin_dir" ] && [ -n "$marketplace_dir" ]; then
-    # Copy fresh files from marketplace cache to plugin cache
-    rsync -a --delete \
-        --exclude '.git' \
-        --exclude '.claude/.onboarding-state.json' \
-        --exclude '.claude/.pilot-*' \
-        --exclude '.claude/.session-*' \
-        --exclude '.claude/.collective-*' \
-        "$marketplace_dir/" "$plugin_dir/"
-    echo "   Plugin cache refreshed"
+updated=0
+for ver_dir in "$PLUGIN_CACHE/$MARKETPLACE_ID/alfred/"*/; do
+    [ -d "$ver_dir" ] || continue
+    if [ -n "$marketplace_dir" ]; then
+        rsync -a --delete \
+            --exclude '.git' \
+            --exclude '.claude/.onboarding-state.json' \
+            --exclude '.claude/.pilot-*' \
+            --exclude '.claude/.session-*' \
+            --exclude '.claude/.collective-*' \
+            "$marketplace_dir/" "$ver_dir"
+        updated=$((updated + 1))
+    fi
+done
+if [ "$updated" -gt 0 ]; then
+    echo "   Updated $updated cached version(s)"
 else
     echo "   Plugin not cached — install via: /plugin install alfred@$MARKETPLACE_ID"
 fi
