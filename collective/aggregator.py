@@ -193,5 +193,76 @@ def main():
         print(json.dumps(output, indent=2))
 
 
+def run_tests():
+    """Self-test suite for aggregator."""
+    import tempfile, os
+
+    passed = 0
+    failed = 0
+
+    def check(condition, desc):
+        nonlocal passed, failed
+        if condition:
+            print(f"  [PASS] {desc}")
+            passed += 1
+        else:
+            print(f"  [FAIL] {desc}")
+            failed += 1
+
+    # Create temp memory dir with test feedback files
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Test 1: Empty directory produces no signals
+        signals = process_memories(tmpdir)
+        check(len(signals) == 0, "empty directory produces no signals")
+
+        # Test 2: Single feedback memory produces one signal
+        with open(os.path.join(tmpdir, "feedback_test1.md"), "w") as f:
+            f.write("---\nname: test\ntype: feedback\n---\nNever modify test files to fix failing tests.\n\n**Why:** Tests should verify code, not the other way around.")
+        signals = process_memories(tmpdir)
+        check(len(signals) == 1, "single feedback produces one signal")
+        check(signals[0]["category"] == "testing", "correctly categorized as testing")
+        check(len(signals[0]["pattern"]) <= 200, "pattern within 200 char limit")
+        check(signals[0]["pattern"] != "", "pattern is not empty")
+
+        # Test 3: Pattern is anonymized (no paths)
+        with open(os.path.join(tmpdir, "feedback_test2.md"), "w") as f:
+            f.write("---\nname: test2\ntype: feedback\n---\nDon't hardcode /Users/drake/project paths.\n\n**Why:** Breaks reproducibility.")
+        signals = process_memories(tmpdir)
+        check(len(signals) == 2, "two feedbacks produce two signals")
+        path_signal = [s for s in signals if "hardcode" in s["pattern"].lower()]
+        if path_signal:
+            check("drake" not in path_signal[0]["pattern"], "user path anonymized from pattern")
+
+        # Test 4: Category classification
+        with open(os.path.join(tmpdir, "feedback_test3.md"), "w") as f:
+            f.write("---\nname: test3\ntype: feedback\n---\nAlways create a feature branch before committing.\n\n**Why:** Protects main.")
+        signals = process_memories(tmpdir)
+        branch_signal = [s for s in signals if "branch" in s["pattern"].lower()]
+        if branch_signal:
+            check(branch_signal[0]["category"] == "git_workflow", "branch advice categorized as git_workflow")
+
+        # Test 5: Promotion detection
+        with open(os.path.join(tmpdir, "feedback_test4.md"), "w") as f:
+            f.write("---\nname: test4\ntype: feedback\n---\nAdded to CLAUDE.md as a rule: always run tests.\n\n**Why:** Consistency.")
+        signals = process_memories(tmpdir)
+        rule_signal = [s for s in signals if "CLAUDE" in s.get("pattern", "") or "rule" in s.get("pattern", "").lower()]
+        # Find the one that mentions rule/CLAUDE.md
+        promoted = [s for s in signals if s.get("promoted_to") == "rule"]
+        check(len(promoted) >= 1, "detects promotion to rule level")
+
+        # Test 6: Non-feedback files are ignored
+        with open(os.path.join(tmpdir, "user_profile.md"), "w") as f:
+            f.write("---\nname: user\ntype: user\n---\nUser profile data.")
+        signals_before = len(signals)
+        signals = process_memories(tmpdir)
+        check(len(signals) == signals_before, "non-feedback files ignored")
+
+    print(f"\n{passed} passed, {failed} failed")
+    return failed == 0
+
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        success = run_tests()
+        sys.exit(0 if success else 1)
     main()

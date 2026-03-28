@@ -220,6 +220,30 @@ else
 fi
 echo ""
 
+# 10b. Encryption test suite
+if [ -x scripts/test-encryption.sh ]; then
+    if bash scripts/test-encryption.sh > /dev/null 2>&1; then
+        check "Encryption roundtrip test passes" "0"
+    else
+        check "Encryption roundtrip test passes" "1"
+    fi
+fi
+# 10c. Aggregator test suite
+if python3 collective/aggregator.py --test > /dev/null 2>&1; then
+    check "Aggregator test suite passes" "0"
+else
+    check "Aggregator test suite passes" "1"
+fi
+# 10d. Hook output test suite
+if [ -x scripts/test-hooks.sh ]; then
+    if bash scripts/test-hooks.sh > /dev/null 2>&1; then
+        check "Hook output test suite passes" "0"
+    else
+        check "Hook output test suite passes" "1"
+    fi
+fi
+echo ""
+
 # 11. Conflict marker check
 echo "11. Conflict marker check"
 # Build pattern from parts so this file doesn't match itself
