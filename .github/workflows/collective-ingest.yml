@@ -112,7 +112,11 @@ jobs:
           python3 -c "
           import json, sys
 
-          ALLOWED = ['git_workflow','formatting','testing','code_style','safety','explanation','tooling']
+          ALLOWED_CATS = ['git_workflow','formatting','testing','code_style','safety','explanation','tooling']
+          ALLOWED_TYPES = ['correction','rule','graduation','automation','gap']
+          ALLOWED_HABITS = ['context_before_action','scope_before_work','save_points','safe_experimentation','one_change_one_test','automated_recovery','provenance','self_improvement']
+          ALLOWED_LEVELS = ['beginner','intermediate','advanced']
+          ALLOWED_PERSONAS = ['ml-ds','research','business-analytics','product-analytics','platform-bi','general','unknown']
 
           with open('/tmp/new_signals.json') as f:
               data = json.load(f)
@@ -121,22 +125,56 @@ jobs:
           if not signals:
               print('ERROR: empty signals array')
               sys.exit(1)
-          if len(signals) > 100:
-              print(f'ERROR: too many signals ({len(signals)}, max 100)')
+          if len(signals) > 200:
+              print(f'ERROR: too many signals ({len(signals)}, max 200)')
               sys.exit(1)
 
           for i, s in enumerate(signals):
-              if 'category' not in s or 'pattern' not in s:
-                  print(f'ERROR: signal {i} missing category or pattern')
-                  sys.exit(1)
-              if s['category'] not in ALLOWED:
-                  print(f'ERROR: signal {i} invalid category: {s[\"category\"]}')
-                  sys.exit(1)
-              if len(s['pattern']) > 200:
-                  print(f'ERROR: signal {i} pattern too long ({len(s[\"pattern\"])} chars)')
+              sig_type = s.get('type', 'correction')
+              if sig_type not in ALLOWED_TYPES:
+                  print(f'ERROR: signal {i} invalid type: {sig_type}')
                   sys.exit(1)
 
-          print(f'Validated {len(signals)} signals')
+              # Validate per type
+              if sig_type == 'correction':
+                  if 'pattern' not in s or 'category' not in s:
+                      print(f'ERROR: correction {i} missing pattern or category')
+                      sys.exit(1)
+                  if len(s.get('pattern','')) > 200:
+                      print(f'ERROR: correction {i} pattern too long')
+                      sys.exit(1)
+              elif sig_type == 'rule':
+                  if 'rule_text' not in s:
+                      print(f'ERROR: rule {i} missing rule_text')
+                      sys.exit(1)
+                  if len(s.get('rule_text','')) > 200:
+                      print(f'ERROR: rule {i} rule_text too long')
+                      sys.exit(1)
+              elif sig_type == 'graduation':
+                  if s.get('habit') not in ALLOWED_HABITS:
+                      print(f'ERROR: graduation {i} invalid habit: {s.get(\"habit\")}')
+                      sys.exit(1)
+              elif sig_type == 'automation':
+                  if 'purpose' not in s:
+                      print(f'ERROR: automation {i} missing purpose')
+                      sys.exit(1)
+                  if len(s.get('purpose','')) > 200:
+                      print(f'ERROR: automation {i} purpose too long')
+                      sys.exit(1)
+              elif sig_type == 'gap':
+                  if 'gap_pattern' not in s:
+                      print(f'ERROR: gap {i} missing gap_pattern')
+                      sys.exit(1)
+                  if len(s.get('gap_pattern','')) > 200:
+                      print(f'ERROR: gap {i} gap_pattern too long')
+                      sys.exit(1)
+
+          by_type = {}
+          for s in signals:
+              t = s.get('type','correction')
+              by_type[t] = by_type.get(t, 0) + 1
+          summary = ', '.join(f'{v} {k}' for k, v in by_type.items())
+          print(f'Validated {len(signals)} signals ({summary})')
           "
 
       - name: Clone collective repo

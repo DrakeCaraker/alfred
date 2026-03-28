@@ -39,7 +39,18 @@ Use `$ALFRED_ROOT` as the prefix for all Alfred script paths below. User project
 
 3. If no feedback memories exist, say: "No feedback memories found. Use Alfred and receive corrections to build up signals."
 
-4. Show the preview output. Emphasize:
+4. Also check for pending signals from other commands (graduation, rule, gap, automation):
+   ```bash
+   cat .claude/.collective-pending.json 2>/dev/null
+   ```
+   If the pending file exists and has signals, show them grouped by type:
+   - **Correction signals**: from feedback memories (shown by aggregator)
+   - **Graduation signals**: which habits were graduated, sessions taken
+   - **Rule signals**: anonymized CLAUDE.md rules with category and origin
+   - **Gap signals**: rules the user added that aren't in the stock persona
+   - **Automation signals**: hooks, CI checks, guards the user has set up
+
+5. Show the preview output. Emphasize:
    - All signals are anonymized — no file paths, code, or identifiers
    - Signals are generated locally — nothing has been sent anywhere
    - Run `/collective contribute` to encrypt and push to the private repo
