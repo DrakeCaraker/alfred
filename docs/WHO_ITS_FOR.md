@@ -15,7 +15,7 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 - Blocks PII/PHI from being committed to git
 - Uses your language: "Sign a lab notebook page" instead of "make a commit"
 
-**Start:** Install Alfred, run `/bootstrap`, pick "Research."
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "Research."
 
 > *Alfred's research persona is strictly better than static templates like [claude-code-my-workflow](https://github.com/pedrohcgs/claude-code-my-workflow) — it teaches, adapts, and learns from your corrections.*
 
@@ -32,7 +32,7 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 - Teaches 4-way data splits (train/val/explain/test)
 - Uses your language: "Checkpoint your experiment" instead of "commit your code"
 
-**Start:** Install Alfred, run `/bootstrap`, pick "ML / Data Science."
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "ML / Data Science."
 
 ---
 
@@ -46,7 +46,7 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 - Traces every metric back to the query and data that produced it
 - Uses your language: "Save a version of the spreadsheet" instead of "create a branch"
 
-**Start:** Install Alfred, run `/bootstrap`, pick "Business Analytics."
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "Business Analytics."
 
 ---
 
@@ -60,7 +60,7 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 - Traces experiment results to configurations and code
 - Uses your language: "Run a test on a small group before rolling out" instead of "create a feature branch"
 
-**Start:** Install Alfred, run `/bootstrap`, pick "Product Analytics."
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "Product Analytics."
 
 ---
 
@@ -74,7 +74,7 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 - Enforces SLA-aware data freshness monitoring
 - Uses your language: "Take a snapshot before making changes" instead of "commit before refactoring"
 
-**Start:** Install Alfred, run `/bootstrap`, pick "BI Platform."
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "BI Platform."
 
 ---
 
@@ -88,7 +88,7 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 - Auto-formats on every edit, auto-fixes CI failures
 - Uses your language: "Save your work" instead of "stage and commit to a feature branch"
 
-**Start:** Install Alfred, run `/bootstrap`, pick "General."
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "General."
 
 ---
 
@@ -109,4 +109,4 @@ Alfred is per-project but team-aware. Each member runs `/bootstrap` with their o
 /plugin install alfred@DrakeCaraker/alfred
 ```
 
-Then run `/bootstrap` in any project.
+Then run `/alfred:bootstrap` in any project.

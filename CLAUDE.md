@@ -59,6 +59,8 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 
 ## Slash Commands
 
+> When Alfred is installed as a Claude Code plugin, commands are namespaced as `/alfred:<command>` (e.g., `/alfred:bootstrap`, `/alfred:teach`).
+
 | Command | Purpose |
 |---------|---------|
 | /bootstrap | Persona-aware project setup (you just ran this) |

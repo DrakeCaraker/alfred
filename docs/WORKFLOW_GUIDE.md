@@ -64,6 +64,8 @@ Alfred automates development workflows through 7 layers, from instant auto-fixes
 
 ## Commands Reference
 
+> **Plugin users:** When Alfred is installed as a Claude Code plugin, prefix all commands with `alfred:` (e.g., `/alfred:commit`, `/alfred:teach`).
+
 ### Workflow Commands
 | Command | What it does | When to use |
 |---------|-------------|-------------|

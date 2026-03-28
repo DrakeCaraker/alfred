@@ -118,6 +118,8 @@ At the Claude Code prompt, type:
 /bootstrap
 ```
 
+> **If you installed via plugin (Option A):** All Alfred commands use the `alfred:` prefix. Type `/alfred:bootstrap` instead. This applies to every Alfred command: `/alfred:teach`, `/alfred:status`, etc.
+
 Alfred asks three questions. Type your answer and press Enter after each:
 
 ```

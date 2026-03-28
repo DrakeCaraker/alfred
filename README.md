@@ -60,7 +60,7 @@ In any Claude Code session:
 /plugin install alfred@DrakeCaraker/alfred
 ```
 
-Then open your project and type `/bootstrap`. Alfred works in any project.
+Then open your project and type `/alfred:bootstrap`. Alfred works in any project.
 
 **Starting a new project** (alternative — clones Alfred as a template):
 
@@ -83,10 +83,12 @@ claude
 
 Then type `/bootstrap` and answer 3 questions. Alfred audits what's already there, fills in what's missing, and sets up guardrails around your existing work. That's it. Start working.
 
-After `/bootstrap`, three commands cover 90% of daily use: **`/new-work`** (start a task), **`/commit`** (save progress), **`/teach`** (learn a habit).
+After `/bootstrap`, three commands cover 90% of daily use: **`/new-work`** (start a task), **`/commit`** (save progress), **`/teach`** (learn a habit). Plugin users: `/alfred:new-work`, `/alfred:commit`, `/alfred:teach`.
 
 <details>
 <summary>All commands</summary>
+
+> **Plugin users:** When Alfred is installed as a plugin, prefix all commands with `alfred:` (e.g., `/alfred:teach`). When using Alfred as a standalone project, no prefix is needed.
 
 | Command | What it does |
 |---------|-------------|
