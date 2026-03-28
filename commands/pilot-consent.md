@@ -28,12 +28,13 @@ $ARGUMENTS — optional: `revoke` to revoke consent, `status` to check current s
      • Pattern graduation progress
      • Feedback memory count, bookmark saved (bool)
 
-   COLLECTIVE SIGNALS (anonymized corrections):
-     • Correction category (git_workflow, formatting, testing, etc.)
-     • Anonymized pattern text (max 200 chars, no code/paths/identifiers)
-     • Occurrence count and promotion level (memory/rule/hook)
-     • Project type (python/js/ts/etc.)
-     • Encrypted with AES-256 before leaving your machine
+   COLLECTIVE SIGNALS (5 types, all anonymized and encrypted):
+     • Corrections: anonymized feedback patterns (max 200 chars)
+     • Habit graduation: which habits graduated, sessions taken, coding level
+     • Rules: anonymized CLAUDE.md rules you create (company names removed)
+     • Persona gaps: rules you add that aren't in the stock persona
+     • Automations: what hooks/CI/guards you build (purpose only, no code)
+     • All encrypted with RSA+AES-256 before leaving your machine
 
    WHAT WE NEVER COLLECT:
      • Names, emails, employee IDs
@@ -72,13 +73,13 @@ $ARGUMENTS — optional: `revoke` to revoke consent, `status` to check current s
    - Generate a UUID v4 using: `python3 -c "import uuid; print(uuid.uuid4())"`
    - If `.claude/.pilot-identity.json` exists, reuse the existing UUID
    - Write `.claude/.pilot-identity.json`: `{"anonymous_id": "<uuid>", "created_date": "<today>"}`
-   - Write `.claude/.pilot-consent.json`: `{"consented": true, "consent_date": "<today>", "schema_version": "2.0"}`
+   - Write `.claude/.pilot-consent.json`: `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}`
    - Confirm: "Consent granted. Telemetry + collective signals will be collected. Signals are encrypted with AES-256 before leaving your machine."
 
 6. **Revoke consent**:
    - Read `.claude/.pilot-consent.json`
    - If not consented or file missing, say: "No active consent to revoke."
-   - Update to: `{"consented": false, "revoked_date": "<today>", "schema_version": "2.0"}`
+   - Update to: `{"consented": false, "revoked_date": "<today>", "schema_version": "3.0"}`
    - Delete `.claude/.collective-pending.json` if it exists
    - Keep `.claude/.pilot-identity.json` intact (for data continuity if re-consent)
    - Confirm: "Consent revoked. No further data will be collected (telemetry or collective signals). Your data remains in .pilot/ — run /pilot-delete to remove it."

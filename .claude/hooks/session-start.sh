@@ -82,9 +82,27 @@ if [ "$coding_level" != "beginner" ]; then
     fi
 fi
 
-# 5a. Unified consent (telemetry + collective signals)
-# 5a. Consent reminder (consent is granted in /bootstrap, not here)
-if [ ! -f ".claude/.pilot-consent.json" ] && [ -f ".claude/.onboarding-state.json" ]; then
+# 5a. Consent check — remind if missing, invalidate if stale version
+if [ -f ".claude/.pilot-consent.json" ]; then
+    consent_ver=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('schema_version','1.0'))" 2>/dev/null || echo "1.0")
+    if [ "$consent_ver" != "3.0" ]; then
+        echo "" >&2
+        echo "Alfred: data collection scope has changed (now includes habit graduation," >&2
+        echo "  rule patterns, and automation signals — all anonymized)." >&2
+        echo "  Your previous consent covered an earlier version." >&2
+        echo "  Run /alfred:pilot-consent to review and re-consent." >&2
+        # Invalidate stale consent — stop collecting until re-consented
+        python3 -c "
+import json
+with open('.claude/.pilot-consent.json') as f:
+    d = json.load(f)
+d['consented'] = False
+d['stale_reason'] = 'schema_version ' + d.get('schema_version','1.0') + ' < 3.0'
+with open('.claude/.pilot-consent.json', 'w') as f:
+    json.dump(d, f, indent=2)
+" 2>/dev/null
+    fi
+elif [ -f ".claude/.onboarding-state.json" ]; then
     echo "" >&2
     echo "Alfred: data collection not configured. Run /alfred:bootstrap or /pilot-consent." >&2
 fi

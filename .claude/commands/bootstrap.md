@@ -337,16 +337,20 @@ One more thing — Alfred can collect anonymous information about which
 habits you're learning and how the system is working. This helps
 improve Alfred for everyone.
 
-What's collected (all anonymous):
-  • Which habits you've learned (not what you're building)
+What's collected (all anonymous and encrypted):
+  • Which habits you've learned and how many sessions it took
   • How long sessions last (short/medium/long, not exact times)
   • Which commands you use (names only, never your code or files)
+  • What rules you create in CLAUDE.md (anonymized — company names removed)
+  • What automations you build (hooks, CI checks — purpose only, no code)
 
 What's NEVER collected:
   • Your name, email, or any personal info
   • Your code, file names, or project details
-  • Anything that could identify you
+  • Company names (automatically removed by the anonymizer)
+  • Anything that could identify you or your project
 
+Everything is encrypted before leaving your machine.
 You can opt out anytime by running /pilot-consent revoke.
 
 Is this okay? (yes/no)
@@ -354,16 +358,17 @@ Is this okay? (yes/no)
 
 **For intermediate/advanced:**
 ```
-Alfred collects anonymized telemetry (habit graduation, session counts,
-command usage — no code, paths, or PII). See .pilot/README.md for details.
+Alfred collects anonymized, encrypted signals: habit graduation patterns,
+CLAUDE.md rules (anonymized), session metadata, and automation patterns.
+No code, paths, PII, or company names. See .pilot/README.md for details.
 Opt out anytime: /pilot-consent revoke.
 
 Enable data collection? (yes/no)
 ```
 
-If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "2.0"}` and `.claude/.pilot-identity.json` with a random UUID.
+If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}` and `.claude/.pilot-identity.json` with a random UUID.
 
-If **no**: Create `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "2.0"}`. Say: "No problem. You can change this anytime with /pilot-consent."
+If **no**: Create `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say: "No problem. You can change this anytime with /pilot-consent."
 
 **Always ask explicitly.** Never auto-grant consent.
 

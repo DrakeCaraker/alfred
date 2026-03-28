@@ -10,7 +10,7 @@
       "name": "alfred",
       "description": "Teaches development habits in your domain's language, then turns your corrections into permanent rules and automated guards. 6 personas, 8 habits, encrypted collective learning.",
       "source": "./",
-      "version": "0.2.1"
+      "version": "0.2.2"
     }
   ]
 }
