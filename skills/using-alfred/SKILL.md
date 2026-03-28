@@ -43,7 +43,7 @@ After the consent check, compare the installed plugin version against the cached
   Then say: "Alfred updated to [latest]. Restart the session (`/exit` then `claude`) to activate all changes."
 - **no**: Say "OK, skipping update." and continue normally.
 
-Only ask once per session. If the cache file doesn't exist, skip silently (the session-start hook creates it in the background).
+Only ask once per session. If the cache file doesn't exist or versions match, skip silently — do NOT mention the update check to the user. Just proceed to greeting them.
 
 ## Quick Start
 
