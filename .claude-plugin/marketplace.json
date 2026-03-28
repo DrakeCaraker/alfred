@@ -1,0 +1,16 @@
+{
+  "name": "DrakeCaraker/alfred",
+  "description": "Alfred plugin marketplace — AI coding assistant that teaches development habits",
+  "owner": {
+    "name": "Drake Caraker",
+    "url": "https://github.com/DrakeCaraker"
+  },
+  "plugins": [
+    {
+      "name": "alfred",
+      "description": "Teaches development habits in your domain's language, then turns your corrections into permanent rules and automated guards. 6 personas, 8 habits, encrypted collective learning.",
+      "source": ".",
+      "version": "0.2.0"
+    }
+  ]
+}
