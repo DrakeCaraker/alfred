@@ -59,6 +59,8 @@ Format:
 [Persona analogy from the Analogy Map — the full text, not abbreviated]
 
 In practice, this means: [one sentence connecting the analogy to what Claude Code does]
+
+**Prompting tip:** [One tip from the persona's Prompting Guide section (Section 10) that's most relevant to this habit. Choose the tip that maps to this habit's concern.]
 ```
 
 ### Phase B — DEMO ("Watch me do it on YOUR project")
@@ -152,6 +154,10 @@ You won't see explanations for this habit unless you run /teach [name] again.
 [N/8 habits graduated] — [Level name: Beginner (0-3), Practitioner (4-6), Proficient (7-8)]
 ```
 
+If this is the user's 3rd or 4th graduation, add:
+"Tip: There's a full prompting guide in docs/PROMPTING_GUIDE.md if you want to level up faster."
+Only show this once — check if `.claude/.prompting-guide-shown` exists. If not, create it after showing.
+
 If the user just graduated ALL 8 habits:
 ```
 All 8 habits graduated! You've reached Proficient level.
@@ -200,6 +206,23 @@ Next: Run /teach to learn "Scope before work" (habit #2)
 | 6 | automated_recovery | Automated recovery | /ci-fix | — |
 | 7 | provenance | Provenance | /experiment-summary | — |
 | 8 | self_improvement | Self-improvement | /self-improve | — |
+
+## Habit-to-prompting-tip mapping
+
+When teaching each habit, include the most relevant prompting tip from the persona's Prompting Guide (Section 10). Use this mapping to select the right tip:
+
+| # | Habit | Tip theme |
+|---|-------|-----------|
+| 1 | Context before action | "Ask for deeper analysis" / "Challenge results" — teach users to request context |
+| 2 | Scope before work | "State constraints upfront" / "Frame as hypotheses" — teach users to scope requests |
+| 3 | Save points | "Scope experiments explicitly" / "Define dimensions upfront" — teach users to make atomic requests |
+| 4 | Safe experimentation | "Ask for trade-offs" / "Give me 2-3 approaches" — teach users to explore before committing |
+| 5 | One change, one test | "Challenge results" / "Request sanity checks" — teach users to verify each step |
+| 6 | Automated recovery | "Use depth signals" / "Request failure modes" — teach users to ask for robustness |
+| 7 | Provenance | "Demand provenance" / "Request methodology review" — teach users to trace results |
+| 8 | Self-improvement | "Challenge before merging" / "Vet this" — teach users to audit their own work |
+
+Read the persona's Section 10 and select the specific tip text that best matches the habit being taught. The tip should feel like natural advice for the habit, not a separate topic.
 
 ## Rules
 - Always read onboarding state before teaching

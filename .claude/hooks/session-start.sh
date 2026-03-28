@@ -198,6 +198,17 @@ if [ "$branch" != "$MAIN_BRANCH" ] && [ "$branch" != "HEAD" ]; then
     fi
 fi
 
+# 8.7. Contextual prompting tips (sessions 2-5 only, one per session)
+if [ "$session_count" -ge 2 ] && [ "$session_count" -le 5 ]; then
+    tip_index=$(( (session_count - 2) % 4 ))
+    case "$tip_index" in
+        0) echo "" >&2; echo "Prompting tip: Describe what you want, not how to build it. State constraints upfront." >&2 ;;
+        1) echo "" >&2; echo "Prompting tip: Say 'vet this' before committing to a plan. It catches issues early." >&2 ;;
+        2) echo "" >&2; echo "Prompting tip: Ask for 2-3 approaches with trade-offs before picking one." >&2 ;;
+        3) echo "" >&2; echo "Prompting tip: Say 'audit this' after completing work. It catches what you missed." >&2 ;;
+    esac
+fi
+
 # 9. Proactive recommendations
 if [ -f "$state_file" ]; then
     if [ "$graduated" = "0" ] && [ "$session_count" -le 3 ]; then
