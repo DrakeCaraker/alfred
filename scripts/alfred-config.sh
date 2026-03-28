@@ -20,11 +20,15 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 0
 fi
 
-python3 << PYEOF 2>/dev/null || echo "$DEFAULT"
+python3 -c "
 import re, sys
 
+config_file = sys.argv[1]
+key = sys.argv[2]
+default = sys.argv[3] if len(sys.argv) > 3 else ''
+
 try:
-    with open("$CONFIG_FILE") as f:
+    with open(config_file) as f:
         text = f.read()
 
     # Build flat dict from two-level YAML (no PyYAML needed)
@@ -40,33 +44,31 @@ try:
                 section = m.group(1)
                 val = m.group(2).strip()
                 if val.startswith('[') and val.endswith(']'):
-                    items = re.findall(r'"([^"]*)"', val)
+                    items = re.findall(r'\"([^\"]*)\"', val)
                     if not items:
-                        items = re.findall(r"'([^']*)'", val)
+                        items = re.findall(r\"'([^']*)'\", val)
                     if not items:
                         items = [x.strip() for x in val[1:-1].split(',')]
                     d[section] = '|'.join(items)
                 elif val and not val.startswith('#'):
-                    d[section] = val.strip('"').strip("'")
+                    d[section] = val.strip('\"').strip(\"'\")
         elif section:
             m = re.match(r'\s+(\w[\w_-]*):\s*(.*)', stripped)
             if m:
-                key = f"{section}.{m.group(1)}"
+                k = f'{section}.{m.group(1)}'
                 val = m.group(2).strip()
                 if val.startswith('[') and val.endswith(']'):
-                    # Parse YAML list: [".pkl", ".pt"] → .pkl|.pt
-                    items = re.findall(r'"([^"]*)"', val)
+                    # Parse YAML list: [\".pkl\", \".pt\"] -> .pkl|.pt
+                    items = re.findall(r'\"([^\"]*)\"', val)
                     if not items:
-                        items = re.findall(r"'([^']*)'", val)
+                        items = re.findall(r\"'([^']*)'\", val)
                     if not items:
                         items = [x.strip() for x in val[1:-1].split(',')]
-                    d[key] = '|'.join(items)
+                    d[k] = '|'.join(items)
                 elif val and not val.startswith('#'):
-                    d[key] = val.strip('"').strip("'")
+                    d[k] = val.strip('\"').strip(\"'\")
 
-    key = "$KEY"
-    default = "$DEFAULT"
     print(d.get(key, default))
 except Exception:
-    print("$DEFAULT")
-PYEOF
+    print(default)
+" "$CONFIG_FILE" "$KEY" "$DEFAULT"
