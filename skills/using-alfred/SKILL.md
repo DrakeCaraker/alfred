@@ -23,6 +23,18 @@ On your FIRST response in every session, check consent version:
 
 If the file doesn't exist or already matches the current version, skip this check silently.
 
+## UPDATE CHECK
+
+After the consent check, compare the installed plugin version against the cached latest:
+
+1. Read installed version: `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` → `version` field
+2. Read cached latest: `~/.claude/.alfred-update-check` (if it exists)
+3. If they differ and cached version is not empty, tell the user:
+
+> "Alfred update available: [installed] → [latest]. Run: `/plugin marketplace remove alfred-marketplace` then `/plugin marketplace add https://github.com/DrakeCaraker/alfred.git` then `/plugin install alfred@alfred-marketplace` then `/reload-plugins`"
+
+Only mention this once per session. If the cache file doesn't exist, skip silently (the session-start hook creates it in the background).
+
 ## Quick Start
 
 If you haven't bootstrapped yet:

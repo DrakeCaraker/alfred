@@ -82,9 +82,9 @@ if [ "$coding_level" != "beginner" ]; then
     fi
 fi
 
-# 4.5. Plugin update check (at most once per day, non-blocking)
+# 4.5. Plugin update check (at most once per day, background fetch only)
+# Notification is handled by the using-alfred skill (hook stderr isn't reliably visible)
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "$ALFRED_ROOT/.claude-plugin/plugin.json" ]; then
-    installed_ver=$(python3 -c "import json; print(json.load(open('$ALFRED_ROOT/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "unknown")
     cache_file="$HOME/.claude/.alfred-update-check"
     should_check=false
 
@@ -99,18 +99,7 @@ if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "$ALFRED_ROOT/.claude-plugin/plugin.
     fi
 
     if [ "$should_check" = true ]; then
-        # Background fetch — non-blocking, won't slow down session start
         (curl -s --max-time 5 "https://raw.githubusercontent.com/DrakeCaraker/alfred/main/.claude-plugin/plugin.json" 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])" > "$cache_file" 2>/dev/null) &
-    fi
-
-    # Show notification from previous check (if cached version differs)
-    if [ -f "$cache_file" ]; then
-        latest_ver=$(cat "$cache_file" 2>/dev/null)
-        if [ -n "$latest_ver" ] && [ "$latest_ver" != "$installed_ver" ] && [ "$latest_ver" != "unknown" ]; then
-            echo "" >&2
-            echo "Alfred update available: $installed_ver → $latest_ver" >&2
-            echo "  Update: /plugin marketplace remove alfred-marketplace && /plugin marketplace add https://github.com/DrakeCaraker/alfred.git && /plugin install alfred@alfred-marketplace && /reload-plugins" >&2
-        fi
     fi
 fi
 
