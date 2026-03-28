@@ -25,12 +25,12 @@ jobs:
 
       - name: Lint shell scripts (shellcheck)
         run: |
-          sudo apt-get -qq install -y shellcheck > /dev/null 2>&1
+          sudo apt-get -qq install -y shellcheck
           shellcheck -S warning .claude/hooks/*.sh .githooks/pre-push .githooks/pre-commit scripts/*.sh
 
       - name: Lint Python code (ruff)
         run: |
-          pip install ruff > /dev/null 2>&1
+          pip install -q ruff
           ruff check collective/
 
       - name: Make scripts executable
