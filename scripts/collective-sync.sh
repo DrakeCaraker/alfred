@@ -153,7 +153,19 @@ cmd_submit() {
 
   check_gh_auth
 
-  echo "Submitting anonymized signals to Alfred collective..."
+  # Find Alfred root for the public key
+  local alfred_root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+  local public_key="$alfred_root/collective/keys/public.pem"
+  if [ ! -f "$public_key" ]; then
+    die "Public key not found at $public_key. Is Alfred installed correctly?"
+  fi
+
+  echo "Encrypting and submitting signals to Alfred collective..."
+
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  cleanup_submit() { rm -rf "$tmp_dir"; }
+  trap cleanup_submit EXIT
 
   # Validate signal format
   local count
@@ -162,7 +174,6 @@ import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
 signals = data.get('signals', [])
-# Verify all signals have required fields
 for s in signals:
     assert 'category' in s, 'missing category'
     assert 'pattern' in s, 'missing pattern'
@@ -170,30 +181,45 @@ for s in signals:
 print(len(signals))
 " "$signals_file" 2>&1) || die "Invalid signal format: $count"
 
-  # Read the JSON content
-  local body
-  body=$(python3 -c "
-import json, sys
-with open(sys.argv[1]) as f:
-    data = json.load(f)
-# Add metadata
-data['submitted_at'] = '$(date +%Y-%m-%d)'
-print(json.dumps(data, indent=2))
-" "$signals_file")
+  # Hybrid encryption: AES for data, RSA for AES key
+  # 1. Generate random AES key
+  openssl rand 32 > "$tmp_dir/aes_key.bin"
 
-  # Create a GitHub issue on the public Alfred repo
+  # 2. Encrypt signals with AES
+  openssl enc -aes-256-cbc -salt -pbkdf2 \
+    -pass "file:$tmp_dir/aes_key.bin" \
+    -in "$signals_file" \
+    -out "$tmp_dir/signals.enc"
+
+  # 3. Encrypt AES key with RSA public key
+  openssl pkeyutl -encrypt -pubin \
+    -inkey "$public_key" \
+    -in "$tmp_dir/aes_key.bin" \
+    -out "$tmp_dir/aes_key.enc"
+
+  # 4. Base64 encode both for transport
+  local enc_data
+  enc_data=$(base64 < "$tmp_dir/signals.enc")
+  local enc_key
+  enc_key=$(base64 < "$tmp_dir/aes_key.enc")
+
+  # Create a GitHub issue with encrypted payload
   gh issue create \
     --repo "$ALFRED_PUBLIC_REPO" \
     --title "collective-signal: $count signals $(date +%Y-%m-%d)" \
     --label "collective-signal" \
-    --body "\`\`\`json
-$body
-\`\`\`" >/dev/null 2>&1
+    --body "ENCRYPTED_KEY:
+$enc_key
+ENCRYPTED_DATA:
+$enc_data" >/dev/null 2>&1
 
-  echo "Submitted $count anonymized signals to Alfred collective."
+  cleanup_submit
+  trap - EXIT
+
+  echo "Submitted $count encrypted signals to Alfred collective."
   echo ""
-  echo "Signals are anonymized — no code, paths, or identifiers."
-  echo "A maintainer will review and ingest them."
+  echo "Signals are anonymized AND encrypted — the issue body is unreadable"
+  echo "without the maintainer's private key."
 }
 
 cmd_contribute() {

@@ -1,5 +1,10 @@
 name: Collective Signal Ingest
 
+# Processes encrypted collective learning signals submitted as GitHub issues.
+# Users encrypt with the public key (collective/keys/public.pem).
+# This workflow decrypts with the private key (repo secret), validates,
+# encrypts for storage, and pushes to the private collective repo.
+
 on:
   issues:
     types: [opened, labeled]
@@ -13,85 +18,35 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'collective-signal')
     runs-on: ubuntu-latest
     steps:
-      - name: Extract and validate signals from issue body
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            collective/keys
+
+      - name: Extract encrypted payload from issue body
         id: extract
         uses: actions/github-script@v7
         with:
           script: |
             const body = context.payload.issue.body || '';
-
-            // Extract JSON from ```json code fence
-            const match = body.match(/```json\s*\n([\s\S]*?)\n```/);
-            if (!match) {
-              core.setOutput('valid', 'false');
-              core.setOutput('error', 'No JSON code block found in issue body.');
-              return;
-            }
-
-            let data;
-            try {
-              data = JSON.parse(match[1]);
-            } catch (e) {
-              core.setOutput('valid', 'false');
-              core.setOutput('error', `JSON parse error: ${e.message}`);
-              return;
-            }
-
-            // Validate top-level structure
-            if (!data.signals || !Array.isArray(data.signals)) {
-              core.setOutput('valid', 'false');
-              core.setOutput('error', 'Missing or invalid "signals" array.');
-              return;
-            }
-
-            // Guard: max 100 signals per submission
-            if (data.signals.length > 100) {
-              core.setOutput('valid', 'false');
-              core.setOutput('error', `Too many signals: ${data.signals.length} (max 100).`);
-              return;
-            }
-
-            if (data.signals.length === 0) {
-              core.setOutput('valid', 'false');
-              core.setOutput('error', 'Signal array is empty.');
-              return;
-            }
-
-            const ALLOWED_CATEGORIES = [
-              'git_workflow', 'formatting', 'testing',
-              'code_style', 'safety', 'explanation', 'tooling'
-            ];
-
-            for (let i = 0; i < data.signals.length; i++) {
-              const s = data.signals[i];
-
-              if (!s.category || !s.pattern) {
-                core.setOutput('valid', 'false');
-                core.setOutput('error', `Signal ${i}: missing required field "category" or "pattern".`);
-                return;
-              }
-
-              if (!ALLOWED_CATEGORIES.includes(s.category)) {
-                core.setOutput('valid', 'false');
-                core.setOutput('error', `Signal ${i}: invalid category "${s.category}". Allowed: ${ALLOWED_CATEGORIES.join(', ')}.`);
-                return;
-              }
-
-              if (s.pattern.length > 200) {
-                core.setOutput('valid', 'false');
-                core.setOutput('error', `Signal ${i}: pattern exceeds 200 chars (${s.pattern.length}).`);
-                return;
-              }
-            }
-
-            core.setOutput('valid', 'true');
-            core.setOutput('signal_count', String(data.signals.length));
-
-            // Write extracted JSON to file for later steps
             const fs = require('fs');
-            fs.writeFileSync('/tmp/new_signals.json', JSON.stringify(data, null, 2));
 
-      - name: Comment and close if invalid
+            // Extract encrypted key and data from the issue body
+            const keyMatch = body.match(/ENCRYPTED_KEY:\s*\n([\s\S]*?)\nENCRYPTED_DATA:/);
+            const dataMatch = body.match(/ENCRYPTED_DATA:\s*\n([\s\S]*?)$/);
+
+            if (!keyMatch || !dataMatch) {
+              core.setOutput('valid', 'false');
+              core.setOutput('error', 'Missing ENCRYPTED_KEY or ENCRYPTED_DATA sections.');
+              return;
+            }
+
+            // Write base64 blobs to files for openssl
+            fs.writeFileSync('/tmp/aes_key.b64', keyMatch[1].trim());
+            fs.writeFileSync('/tmp/signals.b64', dataMatch[1].trim());
+            core.setOutput('valid', 'true');
+
+      - name: Comment and close if invalid format
         if: steps.extract.outputs.valid == 'false'
         uses: actions/github-script@v7
         with:
@@ -101,7 +56,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Invalid signal format: ${error}`
+              body: `Invalid submission format: ${error}`
             });
             await github.rest.issues.update({
               owner: context.repo.owner,
@@ -109,6 +64,70 @@ jobs:
               issue_number: context.issue.number,
               state: 'closed'
             });
+
+      - name: Decrypt signals with private key
+        if: steps.extract.outputs.valid == 'true'
+        id: decrypt
+        run: |
+          # Write private key from secret
+          echo "$ALFRED_COLLECTIVE_PRIVATE_KEY" > /tmp/private.pem
+
+          # Decode base64
+          base64 -d /tmp/aes_key.b64 > /tmp/aes_key.enc
+          base64 -d /tmp/signals.b64 > /tmp/signals.enc
+
+          # Decrypt AES key with RSA private key
+          openssl pkeyutl -decrypt \
+            -inkey /tmp/private.pem \
+            -in /tmp/aes_key.enc \
+            -out /tmp/aes_key.bin
+
+          # Decrypt signals with AES key
+          openssl enc -d -aes-256-cbc -pbkdf2 \
+            -pass file:/tmp/aes_key.bin \
+            -in /tmp/signals.enc \
+            -out /tmp/new_signals.json
+
+          # Clean up keys immediately
+          rm -f /tmp/private.pem /tmp/aes_key.bin /tmp/aes_key.enc /tmp/signals.enc
+
+          echo "Decrypted successfully"
+        env:
+          ALFRED_COLLECTIVE_PRIVATE_KEY: ${{ secrets.ALFRED_COLLECTIVE_PRIVATE_KEY }}
+
+      - name: Validate decrypted signals
+        if: steps.extract.outputs.valid == 'true'
+        id: validate
+        run: |
+          python3 -c "
+          import json, sys
+
+          ALLOWED = ['git_workflow','formatting','testing','code_style','safety','explanation','tooling']
+
+          with open('/tmp/new_signals.json') as f:
+              data = json.load(f)
+
+          signals = data.get('signals', [])
+          if not signals:
+              print('ERROR: empty signals array')
+              sys.exit(1)
+          if len(signals) > 100:
+              print(f'ERROR: too many signals ({len(signals)}, max 100)')
+              sys.exit(1)
+
+          for i, s in enumerate(signals):
+              if 'category' not in s or 'pattern' not in s:
+                  print(f'ERROR: signal {i} missing category or pattern')
+                  sys.exit(1)
+              if s['category'] not in ALLOWED:
+                  print(f'ERROR: signal {i} invalid category: {s[\"category\"]}')
+                  sys.exit(1)
+              if len(s['pattern']) > 200:
+                  print(f'ERROR: signal {i} pattern too long ({len(s[\"pattern\"])} chars)')
+                  sys.exit(1)
+
+          print(f'Validated {len(signals)} signals')
+          "
 
       - name: Clone collective repo
         if: steps.extract.outputs.valid == 'true'
@@ -120,104 +139,83 @@ jobs:
         env:
           COLLECTIVE_TOKEN: ${{ secrets.ALFRED_COLLECTIVE_TOKEN }}
 
-      - name: Encrypt and merge signals
+      - name: Merge and encrypt for storage
         if: steps.extract.outputs.valid == 'true'
         run: |
           BATCH_DATE=$(date +%Y-%m-%d)
           ENC_FILE="/tmp/collective/signals/${BATCH_DATE}.enc"
-          MERGED_FILE="/tmp/merged_signals.json"
 
-          python3 - "$ENC_FILE" /tmp/new_signals.json "$BATCH_DATE" "$MERGED_FILE" <<'PYEOF'
+          python3 -c "
           import json, sys, hashlib, subprocess, os
 
           enc_file = sys.argv[1]
-          new_signals_file = sys.argv[2]
+          new_file = sys.argv[2]
           batch_date = sys.argv[3]
-          merged_file = sys.argv[4]
-
-          key = os.environ["ALFRED_COLLECTIVE_KEY"]
 
           def signal_id(s):
-              """Dedup key: sha256 of category + first 100 chars of pattern (lowered)."""
-              raw = s.get("category", "") + ":" + s.get("pattern", "")[:100].lower()
+              raw = s.get('category','') + ':' + s.get('pattern','')[:100].lower()
               return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
-          def decrypt(path):
+          def decrypt_batch(path):
               result = subprocess.run(
-                  ["openssl", "enc", "-d", "-aes-256-cbc", "-pbkdf2",
-                   "-pass", f"env:ALFRED_COLLECTIVE_KEY", "-in", path],
-                  capture_output=True
-              )
+                  ['openssl','enc','-d','-aes-256-cbc','-pbkdf2',
+                   '-pass','env:ALFRED_COLLECTIVE_KEY','-in',path],
+                  capture_output=True)
               if result.returncode != 0:
-                  raise RuntimeError(f"Decrypt failed: {result.stderr.decode()}")
+                  raise RuntimeError(result.stderr.decode())
               return json.loads(result.stdout)
 
-          # Load new signals
-          with open(new_signals_file) as f:
+          with open(new_file) as f:
               new_data = json.load(f)
 
-          # If today's batch exists, decrypt and merge (same dedup logic as collective-sync.sh)
           existing = {}
           if os.path.isfile(enc_file):
-              existing_data = decrypt(enc_file)
-              existing = {signal_id(s): s for s in existing_data.get("signals", [])}
+              existing_data = decrypt_batch(enc_file)
+              existing = {signal_id(s): s for s in existing_data.get('signals',[])}
 
-          added = 0
-          updated = 0
-          for s in new_data.get("signals", []):
+          added = updated = 0
+          for s in new_data.get('signals',[]):
               sid = signal_id(s)
               if sid in existing:
-                  # Merge: bump global_occurrences, promote level if higher
-                  existing[sid]["global_occurrences"] = (
-                      existing[sid].get("global_occurrences", 1)
-                      + s.get("local_occurrences", 1)
-                  )
-                  levels = {"memory": 0, "rule": 1, "hook": 2}
-                  if levels.get(s.get("promoted_to", ""), 0) > levels.get(
-                      existing[sid].get("promoted_to", ""), 0
-                  ):
-                      existing[sid]["promoted_to"] = s["promoted_to"]
+                  existing[sid]['global_occurrences'] = existing[sid].get('global_occurrences',1) + s.get('local_occurrences',1)
+                  levels = {'memory':0,'rule':1,'hook':2}
+                  if levels.get(s.get('promoted_to',''),0) > levels.get(existing[sid].get('promoted_to',''),0):
+                      existing[sid]['promoted_to'] = s['promoted_to']
                   updated += 1
               else:
-                  s["global_occurrences"] = s.get("local_occurrences", 1)
-                  s["contributed_at"] = batch_date
+                  s['global_occurrences'] = s.get('local_occurrences',1)
+                  s['contributed_at'] = batch_date
                   existing[sid] = s
                   added += 1
 
-          output = {
-              "schema_version": "1.0",
-              "last_updated": batch_date,
-              "signals": list(existing.values()),
-          }
-
-          with open(merged_file, "w") as f:
+          output = {'schema_version':'1.0','last_updated':batch_date,'signals':list(existing.values())}
+          with open('/tmp/merged_signals.json','w') as f:
               json.dump(output, f, indent=2)
 
-          print(f"{added} new, {updated} updated, {len(existing)} total")
-          PYEOF
-        env:
-          ALFRED_COLLECTIVE_KEY: ${{ secrets.ALFRED_COLLECTIVE_KEY }}
+          print(f'{added} new, {updated} updated, {len(existing)} total')
+          " "$ENC_FILE" /tmp/new_signals.json "$BATCH_DATE"
 
-      - name: Encrypt merged signals
-        if: steps.extract.outputs.valid == 'true'
-        run: |
-          BATCH_DATE=$(date +%Y-%m-%d)
+          # Encrypt merged signals for storage
           openssl enc -aes-256-cbc -salt -pbkdf2 \
             -pass env:ALFRED_COLLECTIVE_KEY \
             -in /tmp/merged_signals.json \
-            -out "/tmp/collective/signals/${BATCH_DATE}.enc"
+            -out "$ENC_FILE"
+
+          rm -f /tmp/merged_signals.json /tmp/new_signals.json
         env:
           ALFRED_COLLECTIVE_KEY: ${{ secrets.ALFRED_COLLECTIVE_KEY }}
 
       - name: Commit and push to collective repo
         if: steps.extract.outputs.valid == 'true'
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           BATCH_DATE=$(date +%Y-%m-%d)
           cd /tmp/collective
           git config user.name "alfred-bot"
           git config user.email "alfred-bot@users.noreply.github.com"
           git add "signals/${BATCH_DATE}.enc"
-          git commit -m "signals: ingest ${BATCH_DATE} from issue #${{ github.event.issue.number }}"
+          git commit -m "signals: ingest ${BATCH_DATE} from issue #${ISSUE_NUMBER}"
           git push
 
       - name: Comment and close issue
@@ -230,6 +228,24 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: 'Signals ingested. Thank you for contributing to Alfred collective learning.'
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+
+      - name: Comment and close on decrypt/validate failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'Failed to process signals. The submission may be corrupted or in an unexpected format.'
             });
             await github.rest.issues.update({
               owner: context.repo.owner,
