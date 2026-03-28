@@ -1,4 +1,4 @@
-.PHONY: setup test lint validate fix check audit
+.PHONY: setup test lint validate fix check audit publish
 
 ## setup: Activate git hooks and verify prerequisites
 setup:
@@ -60,3 +60,7 @@ audit:
 check: validate lint test
 	@echo ""
 	@echo "All checks passed."
+
+## publish: Fix, audit, check, push, and refresh local plugin cache
+publish: fix audit check
+	@bash scripts/dev-publish.sh
