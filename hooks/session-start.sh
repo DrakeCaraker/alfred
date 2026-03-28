@@ -85,7 +85,14 @@ fi
 # 5a. Consent check — re-consent inline if stale, remind if missing
 if [ -f ".claude/.pilot-consent.json" ]; then
     consent_ver=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('schema_version','1.0'))" 2>/dev/null || echo "1.0")
-    if [ "$consent_ver" != "3.0" ]; then
+    # Read current required version from signal schema (single source of truth)
+    required_ver=$(python3 -c "
+import re
+for line in open('${CLAUDE_PLUGIN_ROOT:-$ALFRED_ROOT}/collective/signal_schema.yaml'):
+    m = re.match(r'schema_version:\s*[\"'\''](.*?)[\"'\'']', line)
+    if m: print(m.group(1)); break
+" 2>/dev/null || echo "2.0")
+    if [ "$consent_ver" != "$required_ver" ]; then
         # Invalidate immediately — stop collecting until re-consented
         python3 -c "
 import json

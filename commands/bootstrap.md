@@ -366,9 +366,9 @@ Opt out anytime: /pilot-consent revoke.
 Enable data collection? (yes/no)
 ```
 
-If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}` and `.claude/.pilot-identity.json` with a random UUID.
+If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}` and `.claude/.pilot-identity.json` with a random UUID.
 
-If **no**: Create `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say: "No problem. You can change this anytime with /pilot-consent."
+If **no**: Create `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}`. Say: "No problem. You can change this anytime with /pilot-consent."
 
 **Always ask explicitly.** Never auto-grant consent.
 

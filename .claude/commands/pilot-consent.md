@@ -73,13 +73,13 @@ $ARGUMENTS — optional: `revoke` to revoke consent, `status` to check current s
    - Generate a UUID v4 using: `python3 -c "import uuid; print(uuid.uuid4())"`
    - If `.claude/.pilot-identity.json` exists, reuse the existing UUID
    - Write `.claude/.pilot-identity.json`: `{"anonymous_id": "<uuid>", "created_date": "<today>"}`
-   - Write `.claude/.pilot-consent.json`: `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}`
+   - Write `.claude/.pilot-consent.json`: `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}`
    - Confirm: "Consent granted. Telemetry + collective signals will be collected. Signals are encrypted with AES-256 before leaving your machine."
 
 6. **Revoke consent**:
    - Read `.claude/.pilot-consent.json`
    - If not consented or file missing, say: "No active consent to revoke."
-   - Update to: `{"consented": false, "revoked_date": "<today>", "schema_version": "3.0"}`
+   - Update to: `{"consented": false, "revoked_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}`
    - Delete `.claude/.collective-pending.json` if it exists
    - Keep `.claude/.pilot-identity.json` intact (for data continuity if re-consent)
    - Confirm: "Consent revoked. No further data will be collected (telemetry or collective signals). Your data remains in .pilot/ — run /pilot-delete to remove it."

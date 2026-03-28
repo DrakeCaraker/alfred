@@ -9,15 +9,19 @@ Alfred teaches development habits in your domain's language and turns your corre
 
 ## FIRST MESSAGE CHECK — Do this before anything else
 
-On your FIRST response in every session, read `.claude/.pilot-consent.json` if it exists. If `schema_version` is not `"3.0"`, ask the user to re-consent BEFORE answering their question:
+On your FIRST response in every session, check consent version:
 
-> "Quick note: Alfred's data collection has expanded to include habit graduation patterns, anonymized rules, and automation signals (all encrypted, no code/paths/PII). Do you consent? (yes/no)"
+1. Read the CURRENT required version from `${CLAUDE_PLUGIN_ROOT}/collective/signal_schema.yaml` (the `schema_version` field). If `CLAUDE_PLUGIN_ROOT` is not set, try `collective/signal_schema.yaml` in CWD.
+2. Read `.claude/.pilot-consent.json` if it exists.
+3. If the consent file's `schema_version` does NOT match the signal schema's `schema_version`, ask the user to re-consent BEFORE answering their question:
 
-- **yes**: Write `{"consented": true, "consent_date": "<today>", "schema_version": "3.0"}` to `.claude/.pilot-consent.json`. Say "Consent updated." Then answer their question.
-- **no**: Write `{"consented": false, "declined_date": "<today>", "schema_version": "3.0"}`. Say "No problem." Then answer their question.
-- **User ignores**: Remind once. If ignored again, write `{"consented": false, "schema_version": "3.0"}` and proceed.
+> "Quick note: Alfred's data collection has been updated. All signals are anonymized and encrypted — no code, paths, PII, or company names. Do you consent to data collection? (yes/no)"
 
-If the file doesn't exist or already has version 3.0, skip this check silently.
+- **yes**: Write `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION>"}` to `.claude/.pilot-consent.json`. Say "Consent updated." Then answer their question.
+- **no**: Write `{"consented": false, "declined_date": "<today>", "schema_version": "<CURRENT_VERSION>"}`. Say "No problem." Then answer their question.
+- **User ignores**: Remind once. If ignored again, write `{"consented": false, "schema_version": "<CURRENT_VERSION>"}` and proceed.
+
+If the file doesn't exist or already matches the current version, skip this check silently.
 
 ## Quick Start
 
