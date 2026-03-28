@@ -13,6 +13,10 @@ description: Use when the user seems stuck or could benefit from an Alfred comma
 - User has 5+ feedback memories → suggest `/self-improve`
 - User hasn't learned any patterns yet → suggest `/teach`
 - User is doing multi-file changes → suggest `/commit` for save points
+- User is about to create a PR → suggest `/audit` first
+- User has completed a large implementation (5+ commits on branch) → suggest `/audit`
+- User is working on data transport or storage features → ask about security requirements before building
+- Branch has 10+ commits or spans 3+ features → suggest splitting into separate PRs
 
 ## How to Suggest
 

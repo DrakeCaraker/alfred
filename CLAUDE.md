@@ -43,7 +43,11 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 
 ## Running
 
-No test/lint commands detected yet. Add them here as your project grows.
+```bash
+make check    # Full validation: validate + lint + test (123 checks)
+make audit    # Deep security lint: injection, secrets, traps, sync
+make fix      # Auto-fix: sync commands + hooks + permissions
+```
 
 ## Tools
 
@@ -68,6 +72,7 @@ No test/lint commands detected yet. Add them here as your project grows.
 | /safe-refactor | Test-gated refactoring with rollback |
 | /pr | Branch → commit → push → PR workflow |
 | /vet | Pressure-test a plan before committing to it |
+| /audit | Security and quality audit with guided fixes |
 
 ## Hooks
 
@@ -90,6 +95,22 @@ Suggest `/vet` when:
 - A plan touches multiple files or systems — cross-cutting risk
 
 Say: *"This plan has some complexity — want me to pressure-test it before we proceed?"*
+
+Suggest `/audit` when:
+- About to create a PR from a feature branch
+- A branch has 5+ commits — accumulated changes warrant a security check
+- After completing a large implementation session
+- When building features that touch data transport, storage, or external access
+
+Say: *"Want me to run a security audit before we open the PR?"*
+
+Suggest **branch splitting** when:
+- A branch has 10+ commits or spans 3+ distinct features
+- Say: *"This branch has grown large. Consider opening a PR for what's done and starting a new branch."*
+
+**Ask security requirements** when:
+- Building any feature that stores, moves, or exposes data externally
+- Say: *"Before I build this — who should have access? Does this need encryption?"*
 
 ## Do NOT
 

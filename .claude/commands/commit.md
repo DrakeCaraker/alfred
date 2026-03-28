@@ -26,6 +26,12 @@ You're doing great. Keep working — run /commit again whenever you want to save
 
 Before committing, run these safety checks:
 
+0. **Pre-flight check**: Run `make check` to verify all validations pass. If any check fails:
+   - Show the failure output
+   - Run `make fix` to attempt auto-repair
+   - Re-run `make check`
+   - If it still fails, show the remaining issues and stop — do not commit broken code
+
 1. Run `git status` to see staged and unstaged changes
 2. Check for blocked file extensions in staged changes. Read blocked extensions from `.claude/alfred.yaml` (`blocked_extensions` field) if available; otherwise default to `.pkl`. Run: `git diff --cached --name-only | grep -E '\.(pkl|pt|pth|h5|joblib|ckpt|safetensors)$'`
    - If any match, **STOP** and warn the user. Do not commit.
