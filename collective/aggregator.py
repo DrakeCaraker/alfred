@@ -75,7 +75,7 @@ def extract_pattern(text: str) -> str:
     text = re.sub(r'^---.*?---\s*', '', text, flags=re.DOTALL)
 
     # Take the first substantive line as the pattern
-    lines = [l.strip() for l in text.strip().split('\n') if l.strip() and not l.startswith('#')]
+    lines = [line.strip() for line in text.strip().split('\n') if line.strip() and not line.startswith('#')]
 
     if not lines:
         return ""
@@ -195,7 +195,8 @@ def main():
 
 def run_tests():
     """Self-test suite for aggregator."""
-    import tempfile, os
+    import tempfile
+    import os
 
     passed = 0
     failed = 0
@@ -245,8 +246,6 @@ def run_tests():
         with open(os.path.join(tmpdir, "feedback_test4.md"), "w") as f:
             f.write("---\nname: test4\ntype: feedback\n---\nAdded to CLAUDE.md as a rule: always run tests.\n\n**Why:** Consistency.")
         signals = process_memories(tmpdir)
-        rule_signal = [s for s in signals if "CLAUDE" in s.get("pattern", "") or "rule" in s.get("pattern", "").lower()]
-        # Find the one that mentions rule/CLAUDE.md
         promoted = [s for s in signals if s.get("promoted_to") == "rule"]
         check(len(promoted) >= 1, "detects promotion to rule level")
 
