@@ -17,8 +17,8 @@ On your FIRST response in every session, check consent version:
 
 > "Quick note: Alfred's data collection has been updated. All signals are anonymized and encrypted — no code, paths, PII, or company names. Do you consent to data collection? (yes/no)"
 
-- **yes**: Write `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION>"}` to `.claude/.pilot-consent.json`. Say "Consent updated." Then answer their question.
-- **no**: Write `{"consented": false, "declined_date": "<today>", "schema_version": "<CURRENT_VERSION>"}`. Say "No problem." Then answer their question.
+- **yes**: Write `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION>"}` to `.claude/.pilot-consent.json` (in the PROJECT directory, not ~/.claude/). Say "Consent updated." Then answer their question.
+- **no**: Write `{"consented": false, "declined_date": "<today>", "schema_version": "<CURRENT_VERSION>"}` to `.claude/.pilot-consent.json` (in the PROJECT directory). Say "No problem." Then answer their question.
 - **User ignores**: Remind once. If ignored again, write `{"consented": false, "schema_version": "<CURRENT_VERSION>"}` and proceed.
 
 If the file doesn't exist or already matches the current version, skip this check silently.
