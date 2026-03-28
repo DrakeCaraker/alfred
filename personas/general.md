@@ -85,3 +85,14 @@
 | "Deploy fails" | Config mismatch between local and production | Check environment variables, verify secrets are set, compare local vs deployed config |
 | "Import/module not found" | Wrong package version or missing install | Check package.json/requirements.txt, run install, verify virtual env or node_modules |
 | "Type errors after upgrade" | Breaking change in dependency | Read changelog for breaking changes, update types, run type checker |
+
+## 10. Prompting Guide
+
+Effective prompting patterns for software development:
+
+- **Describe the user-facing behavior, not the implementation.** "When a user clicks save, show a confirmation toast and persist to the database" is better than "add an onClick handler that calls the API."
+- **State constraints upfront.** "Must work with our existing auth middleware and PostgreSQL 14" prevents rework.
+- **Ask for trade-offs.** "Give me 2-3 approaches with pros and cons" before committing to an implementation.
+- **Request edge cases.** "What happens with empty input, concurrent users, network failure?" catches bugs before they ship.
+- **Use depth signals.** "Think about this carefully" or "vet this" when you want thorough analysis. "Just do it" when the approach is obvious.
+- **Challenge before merging.** "Audit this implementation — what did I miss?" catches integration issues, security gaps, and logic errors.

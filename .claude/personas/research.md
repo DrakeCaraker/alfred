@@ -85,3 +85,14 @@ Figure 3: Mean response time by condition (N=120).
 | "Reviewer says results aren't reproducible" | Incomplete pipeline documentation | Provide full pipeline from raw data to figures with `make all` or equivalent |
 | "Figure looks different on different machines" | Backend/font differences in matplotlib/ggplot | Specify backend explicitly, embed fonts in PDF, pin plotting library version |
 | "Statistical test gives unexpected p-value" | Wrong test for data distribution, violated assumptions | Check normality, consider non-parametric alternatives, verify sample sizes |
+
+## 10. Prompting Guide
+
+Effective prompting patterns for academic research:
+
+- **Specify the statistical test and significance level upfront.** "Run a two-tailed t-test at α=0.05 with Bonferroni correction" gets precise results.
+- **State the research question, not the implementation.** "Is there a significant difference between groups A and B on measure X?" is better than "run a t-test on columns 3 and 4."
+- **Ask for effect sizes and confidence intervals.** "Always report Cohen's d and 95% CI alongside p-values" should be standard.
+- **Request methodology review.** "Vet this analysis plan — what threats to validity am I missing?" catches design flaws early.
+- **Demand provenance.** "Show me the complete pipeline from raw data to this figure" ensures reproducibility.
+- **Challenge interpretations.** "What alternative explanations exist for this result?" prevents confirmation bias.

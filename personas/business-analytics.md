@@ -87,3 +87,14 @@
 | "Data looks wrong after ETL" | Schema change upstream, null handling difference, timezone shift | Validate row counts pre/post, check for new NULL patterns, compare schemas |
 | "Stakeholder questions the methodology" | Insufficient documentation of assumptions | Trace every number back to source query, document all filters and exclusions |
 | "Report shows different numbers than last month" | Metric definition changed, backfill applied, or data correction | Check data warehouse changelog, compare query versions, look for retroactive updates |
+
+## 10. Prompting Guide
+
+Effective prompting patterns for business analytics:
+
+- **Start with the business question, not the query.** "What's driving the drop in Q3 retention?" is better than "write a SQL query joining users and events."
+- **Specify the audience.** "This dashboard is for the VP of Marketing who needs weekly KPIs" shapes the output format and detail level.
+- **Ask for assumptions to be stated.** "What assumptions does this analysis rely on?" surfaces hidden filters, date ranges, and cohort definitions.
+- **Request sanity checks.** "Does this number make sense? Compare it to last quarter and industry benchmarks" catches calculation errors.
+- **Define dimensions upfront.** "Break down by region, product line, and customer segment" prevents back-and-forth.
+- **Ask for the story.** "What's the narrative a stakeholder should take from this data?" turns numbers into insights.

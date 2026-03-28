@@ -88,3 +88,14 @@
 | "Metric moved in unexpected direction" | Novelty effect, seasonality, or interaction with another experiment | Wait for novelty to wear off, check for concurrent experiments, segment by new/returning |
 | "P-value is 0.049" | Borderline result, likely fragile | Check multiple testing correction, look at practical significance, consider replication |
 | "Different analysts get different results" | Different metric definitions or date ranges | Standardize metric definitions in docs/metrics/, use shared SQL templates |
+
+## 10. Prompting Guide
+
+Effective prompting patterns for product analytics:
+
+- **Frame as hypotheses.** "We believe adding onboarding tooltips will increase 7-day retention by 5%" gives Claude a testable statement.
+- **Specify the funnel.** "Track: landing → signup → activation → first value moment → day-7 return" defines the analysis scope.
+- **Ask for segment breakdowns.** "Compare new vs returning, mobile vs desktop, free vs paid" reveals where effects concentrate.
+- **Request statistical rigor for A/B tests.** "Calculate sample size for 80% power detecting a 3% lift at α=0.05" before launching experiments.
+- **Challenge correlation vs causation.** "Could this be a selection effect rather than a treatment effect?" prevents misinterpretation.
+- **Ask for actionable recommendations.** "Based on this data, what should the product team do next?" turns analysis into decisions.

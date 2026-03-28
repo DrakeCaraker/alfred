@@ -91,3 +91,14 @@ Directories created by /bootstrap for this persona:
 | "Notebook too large to commit" | Embedded outputs (images, dataframes) bloating file | Clear outputs before commit, use checkpoint pattern for large results |
 | "Tests pass locally but fail in CI" | Environment mismatch, missing deps, GPU vs CPU | Pin dependency versions, use same Python version, mock GPU-dependent tests |
 | "Import error: module not found" | Package not installed or wrong environment | Check virtual env activation, verify `pip install -e .` for local package |
+
+## 10. Prompting Guide
+
+Effective prompting patterns for ML/DS work:
+
+- **State the hypothesis before asking for code.** "I want to test whether feature X improves model accuracy by >2%" gets better results than "add feature X to the model."
+- **Specify metrics and thresholds.** "Evaluate with AUC-ROC, target >0.85" gives Claude a concrete success criterion.
+- **Ask for deeper analysis.** When results look surprising, say "think about this carefully — what could explain this?" Claude will check for data leakage, distribution shift, and common ML pitfalls.
+- **Scope experiments explicitly.** "Change only the learning rate, keep everything else fixed" prevents Claude from making multiple changes that confound results.
+- **Request reproducibility.** "Set seed=42 and log all hyperparameters" should be your default ask.
+- **Challenge results.** "Vet this — what could be wrong with this analysis?" catches issues before they reach a paper or stakeholder.
