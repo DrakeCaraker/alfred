@@ -32,7 +32,17 @@ if [ "$current_branch" != "HEAD" ]; then
     fi
 fi
 
-# --- 3. File checks: block binaries and large files (blocking) ---
+# --- 3. Security audit (blocking) ---
+if [ -x "scripts/audit.sh" ]; then
+    if ! bash scripts/audit.sh >/dev/null 2>&1; then
+        echo ""
+        echo "BLOCKED: Security audit failed. Run 'make audit' for details."
+        echo "  To override: git push --no-verify"
+        exit 1
+    fi
+fi
+
+# --- 4. File checks: block binaries and large files (blocking) ---
 # Read from alfred.yaml with defaults
 CONFIGURED_MAX_MB=10
 CONFIGURED_EXTENSIONS="pkl|pt|pth|h5|joblib|ckpt|safetensors"

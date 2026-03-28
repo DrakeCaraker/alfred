@@ -36,3 +36,6 @@ jobs:
 
       - name: Verify aggregate script runs cleanly
         run: bash scripts/aggregate-pilot.sh
+
+      - name: Security audit
+        run: bash scripts/audit.sh
