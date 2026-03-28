@@ -298,6 +298,8 @@ jobs:
 
       - name: Build prompt
         id: prompt
+        env:
+          CUSTOM_PROMPT: ${{ inputs.custom_prompt }}
         run: |
           case "${{ inputs.task }}" in
             fix-ci)
@@ -307,7 +309,7 @@ jobs:
               echo "prompt=This branch has merge conflicts with main. Run 'git fetch origin main && git merge origin/main'. Resolve all conflicts by understanding both sides' intent. After resolving, run 'make check' to verify, and commit the merge." >> "$GITHUB_OUTPUT"
               ;;
             custom)
-              echo "prompt=${{ inputs.custom_prompt }}" >> "$GITHUB_OUTPUT"
+              echo "prompt=$CUSTOM_PROMPT" >> "$GITHUB_OUTPUT"
               ;;
           esac
 
