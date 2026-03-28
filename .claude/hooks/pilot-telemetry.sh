@@ -114,21 +114,20 @@ SYSMSG
 
 # Aggregate collective signals locally (no network call — fast)
 # These will be pushed on next session start by session-start.sh
-project_key=$(pwd | sed 's|/|-|g; s|^-||')
-memory_dir="$HOME/.claude/projects/-${project_key}/memory"
-# Also check parent project memory dir (some projects store memories at a higher level)
-parent_memory_dir="$HOME/.claude/projects/-$(echo "$HOME" | sed 's|/|-|g; s|^-||')/memory"
-
-# Find the memory dir that has feedback files
+# Scan all project memory dirs for feedback files (handles path variations)
 active_memory_dir=""
-if ls "$memory_dir"/feedback_*.md >/dev/null 2>&1; then
-    active_memory_dir="$memory_dir"
-elif ls "$parent_memory_dir"/feedback_*.md >/dev/null 2>&1; then
-    active_memory_dir="$parent_memory_dir"
-fi
+while IFS= read -r feedback_file; do
+    active_memory_dir=$(dirname "$feedback_file")
+    break
+done < <(find "$HOME/.claude/projects" -name "feedback_*.md" -type f 2>/dev/null | head -1)
 
 if [ -n "$active_memory_dir" ] && [ -f "collective/aggregator.py" ]; then
     python3 collective/aggregator.py "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
+fi
+
+# Second-chance push: try pushing pending signals at session end too
+if [ -f ".claude/.collective-pending.json" ] && [ -n "${ALFRED_COLLECTIVE_KEY:-}" ]; then
+    bash scripts/collective-sync.sh push-pending >/dev/null 2>&1 &
 fi
 
 exit 0

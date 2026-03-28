@@ -84,7 +84,7 @@ if [ "$coding_level" != "beginner" ]; then
 fi
 
 # 5a. Unified consent (telemetry + collective signals)
-if [ -f ".claude/.onboarding-state.json" ] && [ ! -f ".claude/.pilot-consent.json" ]; then
+if [ ! -f ".claude/.pilot-consent.json" ]; then
     echo "" >&2
     echo "Alfred collects anonymized learning signals to improve team rules." >&2
     echo "Signals contain no code, file paths, or identifiers." >&2
