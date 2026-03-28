@@ -203,15 +203,18 @@ print(len(signals))
   local enc_key
   enc_key=$(base64 < "$tmp_dir/aes_key.enc")
 
-  # Create a GitHub issue with encrypted payload
-  gh issue create \
+  # Create a GitHub issue with encrypted payload (no --label: community users can't add labels)
+  if ! gh issue create \
     --repo "$ALFRED_PUBLIC_REPO" \
     --title "collective-signal: $count signals $(date +%Y-%m-%d)" \
-    --label "collective-signal" \
     --body "ENCRYPTED_KEY:
 $enc_key
 ENCRYPTED_DATA:
-$enc_data" >/dev/null 2>&1
+$enc_data" >/dev/null 2>&1; then
+    cleanup_submit
+    trap - EXIT
+    die "Failed to submit signals. Check your GitHub authentication: gh auth status"
+  fi
 
   cleanup_submit
   trap - EXIT
