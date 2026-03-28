@@ -66,13 +66,18 @@ For option 7: infer the closest persona from the user's description. Confirm: "T
 
 **Capture custom role data (Option 7 only):** Store the user's verbatim description in the onboarding state as `custom_role_description`. Read `collective/role-categories.yaml` and categorize the description against the fixed taxonomy — store as `custom_role_category`. Both fields go to `.claude/.onboarding-state.json`. The raw description is local-only (gitignored) and NEVER included in telemetry. The category (e.g., "devops-sre") is safe for telemetry.
 
-Map answers to persona files:
-- 1 → `.claude/personas/ml-ds.md`
-- 2 → `.claude/personas/research.md`
-- 3 → `.claude/personas/business-analytics.md`
-- 4 → `.claude/personas/product-analytics.md`
-- 5 → `.claude/personas/platform-bi.md`
-- 6 → `.claude/personas/general.md`
+Map answers to persona files (check plugin directory first, then local):
+```bash
+ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)}"
+```
+- 1 → `$ALFRED_ROOT/personas/ml-ds.md` (fallback: `.claude/personas/ml-ds.md`)
+- 2 → `$ALFRED_ROOT/personas/research.md`
+- 3 → `$ALFRED_ROOT/personas/business-analytics.md`
+- 4 → `$ALFRED_ROOT/personas/product-analytics.md`
+- 5 → `$ALFRED_ROOT/personas/platform-bi.md`
+- 6 → `$ALFRED_ROOT/personas/general.md`
+
+When running as a plugin, persona files ship with Alfred at `${CLAUDE_PLUGIN_ROOT}/personas/`. Copy the selected persona to `.claude/personas/` in the user's project so it's available locally for `/teach` and other commands.
 
 ### Question 2: Coding comfort
 
@@ -122,13 +127,23 @@ main when something is finished and tested.
 
 **Hook** — A small script that runs automatically at certain moments (like when you
 start a session or try to save). It's a safety net — you don't need to run it yourself.
+
+**"Stop says:" messages** — You may see messages starting with "Stop says:" after
+some responses. These are automatic background tasks (like saving your progress).
+You don't need to do anything with them — just ignore them.
 ```
 
 Do NOT show this primer to intermediate or advanced users.
 
 ## Step 3: Read persona
 
-Read the selected persona file from `.claude/personas/<persona>.md`. Extract:
+Read the selected persona file. Check these locations in order:
+1. `${CLAUDE_PLUGIN_ROOT}/personas/<persona>.md` (plugin installation — full persona with all 10 sections)
+2. `.claude/personas/<persona>.md` (local project copy)
+
+If found in the plugin directory but not locally, copy it to `.claude/personas/<persona>.md` so it's available for `/teach` and other commands.
+
+Extract:
 - **Domain Context Template** → for CLAUDE.md "About" section
 - **Guardrails** → for CLAUDE.md "Guardrails" section
 - **Common Tasks** → for context (not written to CLAUDE.md directly)
