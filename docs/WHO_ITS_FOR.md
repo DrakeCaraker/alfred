@@ -92,6 +92,22 @@ Alfred adapts to how you work. Here's what it does for your specific role.
 
 ---
 
+## Writers & Editors
+
+**Your pain:** Your folder has `FINAL_v3_REAL_FINAL.docx`. You can't tell which version the client approved. You lost a paragraph during revisions and don't know when. Your export formatting breaks every time.
+
+**What Alfred does:**
+- Teaches version control for prose — seal draft versions so you can always go back
+- Guards approved drafts from being overwritten
+- Tracks why each revision was made (not just what changed)
+- Enforces style consistency with Vale/proselint
+- Automates export with pandoc — same formatting every time
+- Uses your language: "Seal a draft" instead of "tag a release"
+
+**Start:** Install Alfred, run `/alfred:bootstrap` (or `/bootstrap` if using Alfred as a standalone project), pick "Writer / Editor."
+
+---
+
 ## For Teams
 
 Alfred is per-project but team-aware. Each member runs `/bootstrap` with their own persona and coding level. Guardrails are shared (via CLAUDE.md in the repo); explanations are personalized.
