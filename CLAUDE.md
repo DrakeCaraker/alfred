@@ -109,7 +109,15 @@ When a session ends (Stop hooks fire), do these silently — the hooks show user
 
 ## Pre-Compact Behavior
 
-When context compression starts (PreCompact hook fires), save any in-progress task state, critical file paths, current branch, and uncommitted decisions to the plan or memory so they survive compression.
+When context compression starts (PreCompact hook fires):
+
+1. **Update bookmark**: Write `.claude/.session-bookmark.json` with current task state (same format as session-end). Add `"checkpoint": "pre-compact"` to distinguish from session-end bookmarks.
+
+2. **Safety-net feedback scan**: Check if any user corrections from this session haven't been saved as feedback memories yet (Rule #4 safety net).
+
+3. **Save uncommitted decisions**: If you made design decisions during this session that aren't captured in code, commits, or memories, write them to memory now — the reasoning will not survive compression.
+
+Do this quickly and silently. Do not suggest commands or ask questions.
 
 ## Explain Gate
 
