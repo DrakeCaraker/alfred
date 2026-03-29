@@ -206,6 +206,11 @@ Write a new CLAUDE.md file with this structure. Adapt content from the persona f
 | /health-check | Assess project maturity |
 | /safe-refactor | Test-gated refactoring with rollback |
 | /pr | Branch → commit → push → PR workflow |
+| /vet | Pressure-test a plan before committing to it |
+| /audit | Security and quality audit with guided fixes |
+| /persona | Check or evolve your persona fit |
+| /collective | Preview or contribute anonymized learning signals |
+| /experiment-summary | Trace results back to source code |
 
 ## Hooks
 

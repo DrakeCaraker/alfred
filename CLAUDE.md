@@ -76,6 +76,12 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 | /pr | Branch → commit → push → PR workflow |
 | /vet | Pressure-test a plan before committing to it |
 | /audit | Security and quality audit with guided fixes |
+| /persona | Check or evolve your persona fit |
+| /collective | Preview or contribute anonymized learning signals |
+| /experiment-summary | Trace results back to source code |
+| /pilot-consent | Manage data collection consent |
+| /pilot-report | Submit anonymous feedback |
+| /pilot-delete | Delete your telemetry data |
 
 ## Hooks
 
@@ -130,7 +136,7 @@ Every Alfred command should surface at the right moment. Full trigger list is in
 | Trigger | Suggest | Why |
 |---------|---------|-----|
 | Working on main | `/new-work` | Prevent direct-to-main changes |
-| 30+ min without commit | `/commit` | Create a rollback checkpoint |
+| Significant work without commit | `/commit` | Create a rollback checkpoint |
 | Work seems complete | `/pr` | Validate, push, and open PR in one step |
 | CI failing | `/ci-fix` | Automates the fix-and-retest loop |
 | About to exit plan mode | `/vet` | Check assumptions before building (Rule #5) |
@@ -141,6 +147,9 @@ Every Alfred command should surface at the right moment. Full trigger list is in
 | Refactoring without tests | `/safe-refactor` | Test-gated changes with rollback |
 | All habits graduated | `/health-check` | What to improve next |
 | New files in results/ | `/experiment-summary` | Trace results to source code |
+| Sessions 1-3, no habits | `/teach` | First development habit lesson |
+| Session 3+, persona unchecked | `/persona` | Verify Alfred uses the right language |
+| After /self-improve signals | `/collective` | Share anonymized corrections |
 
 **Rules:** One suggestion per response. Never repeat a dismissed suggestion. Never auto-run destructive commands. If user says "stop suggesting" — respect it for the session.
 

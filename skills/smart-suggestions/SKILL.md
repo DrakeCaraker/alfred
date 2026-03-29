@@ -37,8 +37,8 @@ Commands fall into three tiers:
 **`/commit`** — Safe commit with pre-flight checks
 - **When:** User has made several changes and pauses, or says "that looks good"
 - **Say:** *"Good stopping point. Want me to run `/commit`? It validates everything then saves a checkpoint."*
-- **When:** 30+ minutes of work without a commit
-- **Say:** *"We've been working for a while without saving. `/commit` creates a checkpoint you can roll back to."*
+- **When:** Significant work without a commit (many edits, multiple files changed). No timer mechanism exists — use judgment based on volume of changes, not elapsed time.
+- **Say:** *"We've done a lot of work without saving. `/commit` creates a checkpoint you can roll back to."*
 - **Effect:** Runs `make check`, stages changes, generates commit message, commits
 
 **`/pr`** — Branch → commit → push → PR

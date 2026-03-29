@@ -10,6 +10,11 @@ Standardized branch-to-PR workflow. Prevents pushing to main and enforces lint c
    - Re-run `make check`
    - If it still fails, show the remaining issues and stop — do not create a PR with broken code
 
+0.5. **Security audit**: Run `make audit` to check for injection risks, secrets, stale syncs, and doc-code consistency. If any audit failure is found:
+   - Show the finding and explain what it means
+   - Offer to fix it before continuing
+   - If the user declines the fix, note it in the PR body under a "Known issues" section
+
 1. **Verify branch safety:**
    ```
    git branch --show-current
