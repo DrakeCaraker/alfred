@@ -9,6 +9,8 @@ Alfred teaches development habits in your domain's language and turns your corre
 
 ## FIRST MESSAGE CHECK — Do this before anything else
 
+**IMPORTANT: Do these checks SILENTLY. Never tell the user about the checks themselves. Never say "consent matches" or "no update needed" or "checking version." Only speak to the user if action is required (re-consent or update available). Otherwise, skip directly to greeting them and answering their question.**
+
 On your FIRST response in every session, check consent version:
 
 1. Read the CURRENT required version from `${CLAUDE_PLUGIN_ROOT}/collective/signal_schema.yaml` (the `schema_version` field). If `CLAUDE_PLUGIN_ROOT` is not set, try `collective/signal_schema.yaml` in CWD.

@@ -63,6 +63,11 @@ categories:
     label: "DevOps / SRE"
     signals: ["infrastructure", "reliability", "CI/CD", "Kubernetes", "Docker", "Terraform", "monitoring", "on-call"]
 
+  # Maps to writer persona
+  - id: content-writing
+    label: "Content Writing / Editing"
+    signals: ["writing", "manuscript", "article", "content", "ghostwriting", "editing", "copywriting", "blog", "newsletter", "chapter", "book", "prose"]
+
   - id: technical-writing
     label: "Technical Writing"
     signals: ["documentation", "API docs", "guides", "tutorials", "technical communication"]
@@ -86,5 +91,6 @@ persona_mapping:
   frontend-dev: general
   fullstack-dev: general
   devops-sre: general
-  technical-writing: general
+  content-writing: writer
+  technical-writing: writer
   other: general
