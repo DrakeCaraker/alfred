@@ -59,12 +59,13 @@ What kind of work do you mainly do?
 4. Product Analytics — A/B tests, funnels, understanding user behavior
 5. BI / Data Platform — data warehouses, dbt, data quality engineering
 6. General software dev — building apps, APIs, or tools (not data-specific)
-7. Something else — just describe it and I'll figure out the best fit
+7. Writer / Editor — manuscripts, articles, content, ghostwriting
+8. Something else — just describe it and I'll figure out the best fit
 ```
 
-For option 7: infer the closest persona from the user's description. Confirm: "That sounds closest to [persona]. I'll use that — let me know if that doesn't feel right."
+For option 8: infer the closest persona from the user's description. Confirm: "That sounds closest to [persona]. I'll use that — let me know if that doesn't feel right."
 
-**Capture custom role data (Option 7 only):** Store the user's verbatim description in the onboarding state as `custom_role_description`. Read `collective/role-categories.yaml` and categorize the description against the fixed taxonomy — store as `custom_role_category`. Both fields go to `.claude/.onboarding-state.json`. The raw description is local-only (gitignored) and NEVER included in telemetry. The category (e.g., "devops-sre") is safe for telemetry.
+**Capture custom role data (Option 8 only):** Store the user's verbatim description in the onboarding state as `custom_role_description`. Read `collective/role-categories.yaml` and categorize the description against the fixed taxonomy — store as `custom_role_category`. Both fields go to `.claude/.onboarding-state.json`. The raw description is local-only (gitignored) and NEVER included in telemetry. The category (e.g., "devops-sre") is safe for telemetry.
 
 Map answers to persona files (check plugin directory first, then local):
 ```bash
@@ -76,6 +77,7 @@ ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(pwd)}"
 - 4 → `$ALFRED_ROOT/personas/product-analytics.md`
 - 5 → `$ALFRED_ROOT/personas/platform-bi.md`
 - 6 → `$ALFRED_ROOT/personas/general.md`
+- 7 → `$ALFRED_ROOT/personas/writer.md`
 
 When running as a plugin, persona files ship with Alfred at `${CLAUDE_PLUGIN_ROOT}/personas/`. Copy the selected persona to `.claude/personas/` in the user's project so it's available locally for `/teach` and other commands.
 
