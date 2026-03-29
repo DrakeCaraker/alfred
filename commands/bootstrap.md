@@ -215,6 +215,26 @@ Write a new CLAUDE.md file with this structure. Adapt content from the persona f
 - **Feedback capture**: reminds to save corrections as memories before session ends
 - **Pre-compact**: saves critical context before conversation compression
 
+## Session End Behavior
+
+When a session ends (Stop hooks fire), do these silently — the hooks show user-friendly messages, your job is the actual work:
+
+1. **Save bookmark**: Write `.claude/.session-bookmark.json` with: task description, progress summary, branch name, files modified, and next steps. Read the existing bookmark first. Format as JSON with keys: `timestamp`, `task`, `progress`, `branch`, `files_modified`, `next_steps`.
+
+2. **Capture feedback**: Check if any user corrections from this session need to be saved as feedback memories (Rule #4). Only capture genuine approach corrections, not routine requests. Check existing memories first to avoid duplicates.
+
+## Pre-Compact Behavior
+
+When context compression starts (PreCompact hook fires):
+
+1. **Update bookmark**: Write `.claude/.session-bookmark.json` with current task state (same format as session-end). Add `"checkpoint": "pre-compact"` to distinguish from session-end bookmarks.
+
+2. **Safety-net feedback scan**: Check if any user corrections from this session haven't been saved as feedback memories yet (Rule #4 safety net).
+
+3. **Save uncommitted decisions**: If you made design decisions during this session that aren't captured in code, commits, or memories, write them to memory now — the reasoning will not survive compression.
+
+Do this quickly and silently. Do not suggest commands or ask questions.
+
 ## Explain Gate
 
 When you encounter a slash command for a habit you haven't graduated yet, briefly explain what it does and why before executing. Check `.claude/.onboarding-state.json` for graduation status. Once graduated, execute silently.
