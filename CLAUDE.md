@@ -136,7 +136,7 @@ Every Alfred command should surface at the right moment. Full trigger list is in
 | Trigger | Suggest | Why |
 |---------|---------|-----|
 | Working on main | `/new-work` | Prevent direct-to-main changes |
-| 30+ min without commit | `/commit` | Create a rollback checkpoint |
+| Significant work without commit | `/commit` | Create a rollback checkpoint |
 | Work seems complete | `/pr` | Validate, push, and open PR in one step |
 | CI failing | `/ci-fix` | Automates the fix-and-retest loop |
 | About to exit plan mode | `/vet` | Check assumptions before building (Rule #5) |
