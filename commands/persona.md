@@ -55,7 +55,7 @@ Analyzes accumulated corrections and suggests the best-fitting persona.
 1. Read `.claude/.onboarding-state.json` for current persona
 2. Read `.claude/alfred-persona.yaml` for custom_rules, preferred_tools, avoided_tools
 3. Read feedback memories (from `~/.claude/projects/<project-key>/memory/feedback_*.md`)
-4. Read ALL 6 persona files from `.claude/personas/`:
+4. Read ALL 7 persona files from `.claude/personas/`:
    - Extract the Guardrails section from each
    - Extract the Domain Context section from each
 5. Score each persona by counting how many of the user's custom rules and corrections OVERLAP with that persona's guardrails and domain signals

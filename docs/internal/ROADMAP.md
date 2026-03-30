@@ -85,7 +85,7 @@ Priority: Respond to real usage data.
 ## Competitive Watch
 
 - **claude-reflect** (861 stars): If they add teaching or personas, Alfred's differentiation narrows. Alfred's defense: collective learning (network effects).
-- **learn-faster-kit** (139 stars): General learning tool, already in awesome-claude-code. Alfred's differentiation: development habits specifically + 6 professional personas.
+- **learn-faster-kit** (139 stars): General learning tool, already in awesome-claude-code. Alfred's differentiation: development habits specifically + 7 professional personas.
 - **SuperClaude** (22K stars): Power-user tool, different audience. Don't compete.
 - **Anthropic native features**: The existential threat. Watch for: native memory/corrections, user profiles, progressive onboarding, team config management. Any of these shipping natively narrows Alfred's value prop. Cross-tool export is the hedge.
 

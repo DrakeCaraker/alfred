@@ -50,7 +50,7 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 ## Running
 
 ```bash
-make check    # Full validation: validate + lint + test (123 checks)
+make check    # Full validation: validate + lint + test (128 checks)
 make audit    # Deep security lint: injection, secrets, traps, sync
 make fix      # Auto-fix: sync commands + hooks + permissions
 ```

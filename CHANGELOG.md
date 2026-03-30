@@ -3,6 +3,35 @@
 All notable changes to Alfred are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.2] - 2026-03-29
+
+### Added
+- **Writer/Editor persona**: 7th persona for manuscripts, articles, content creation
+- **Session End + Pre-Compact specs** in bootstrap template — every bootstrapped project gets structured behavior specs
+- **All 19 commands** documented in bootstrap Slash Commands table and CLAUDE.md
+- **`make audit` in /pr pre-flight** — every PR gets a security sweep automatically
+- **Automatic signal collection** — after consent, signals generate and push without user action (Stop hook + pre-compact + session-start)
+- **Internal telemetry policy** document (`docs/internal/TELEMETRY_POLICY.md`)
+
+### Fixed
+- **Telemetry writes directly in shell** — Stop hooks fire after responses but Claude never gets a turn to act on systemMessages. Telemetry now writes via Python in the hook itself.
+- **Project key path** converts dots and underscores to dashes (`sed 's|[/._]|-|g'`) — feedback count was always 0
+- **ALFRED_ROOT detection** walks up to `collective/signal_schema.yaml` marker instead of hardcoded `../..` — aggregator wasn't found in plugin cache
+- **Bootstrap generates settings.json** with correct nested hook format and explicit `anonymous_id` key
+- **Signal schema** updated for writer persona
+- **Aggregator output** upgraded to schema v2.0 (adds `type`, `persona`, `schema_version`, `contributed_at`)
+- **Ingest** gracefully skips undecryptable batches (mixed encryption keys)
+- **Sensitive data** removed from git (identity/consent files, work email in plugin.json)
+- **Directory Map** in CLAUDE.md updated to actual project structure
+- **Aspirational time-based commit trigger** replaced with observable edit-volume trigger
+- **Dead PostToolUse:Skill hook** removed (slash commands are CLI directives, not tool calls)
+- **Session-start signal push** no longer gated on `ALFRED_COLLECTIVE_KEY`
+
+### Security
+- Identity and consent files removed from git tracking, added to .gitignore
+- Work email replaced with GitHub noreply address in plugin.json
+- Hardcoded username removed from PII scanner test fixture
+
 ## [0.2.0] - 2026-03-28
 
 ### Added
@@ -11,12 +40,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **CI autofix pipeline**: Claude Code automatically fixes CI failures and resolves merge conflicts
 - **Security audit** (`/audit`, `make audit`): Checks for injection, secrets, cleanup traps, sync, doc-code drift
 - **7-layer automation stack**: PostToolUse sync → pre-commit block → pre-push audit → CI → autofix → conflict resolution → weekly scan
-- **Prompting guides**: Domain-specific prompting tips in all 6 personas + standalone `docs/PROMPTING_GUIDE.md`
+- **Prompting guides**: Domain-specific prompting tips in all 7 personas + standalone `docs/PROMPTING_GUIDE.md`
 - **Smart suggestions**: All 19 commands have contextual trigger conditions and explanations
 - **Progressive disclosure**: Prompting tips surface during `/teach` lessons and early sessions
 - **Branch hygiene nudge**: Session-start warns when branch has 10+ commits ahead
 - **Pre-flight checks**: `/commit` and `/pr` run `make check` before any git operations
-- **192 tests**: 126 structural + 7 encryption + 10 aggregator + 12 hook output + 16 anonymizer + 21 PII scanner
+- **128 checks** via `make check` (structural validation + unit tests for encryption, aggregator, anonymizer, PII scanner)
 - **`make fix`**: Auto-syncs commands + hooks + permissions in one command
 - **User-friendly hook messages**: Stop hooks show "Alfred: saving..." not raw instructions
 
