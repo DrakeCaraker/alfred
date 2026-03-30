@@ -24,16 +24,6 @@
                         "timeout": 10
                     }
                 ]
-            },
-            {
-                "matcher": "Skill",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": ".claude/hooks/track-command.sh",
-                        "timeout": 5
-                    }
-                ]
             }
         ],
         "SessionStart": [

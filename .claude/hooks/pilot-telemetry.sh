@@ -81,12 +81,6 @@ project_key=$(pwd | sed 's|/|-|g; s|^-||')
 memory_dir="$HOME/.claude/projects/-${project_key}/memory"
 feedback_files_on_disk=$(ls "$memory_dir"/feedback_*.md 2>/dev/null | wc -l | tr -d ' ')
 
-# Read command tracking log if it exists (populated by track-command.sh hook)
-commands_this_session=""
-if [ -f ".claude/.commands-this-session" ]; then
-    commands_this_session=$(sort -u ".claude/.commands-this-session" | tr '\n' ',' | sed 's/,$//')
-fi
-
 # Output systemMessage for Claude to act on
 cat >&2 << SYSMSG
 PILOT TELEMETRY — Record session data now.
@@ -102,7 +96,7 @@ Update or create $telemetry_file with this session's data:
 - branch_type: $branch_type
 
 Append a new session entry to the sessions array. Include:
-- commands_used: [$commands_this_session] (pre-computed from hook tracking log — use this, do not guess from memory)
+- commands_used: list the /alfred: or / slash commands you used this session (names only, no arguments — report from memory, best-effort)
 - graduated_this_session: pattern names graduated this session (check .claude/.onboarding-state.json)
 - patterns_state: current state of all patterns from .claude/.onboarding-state.json
 - feedback_memory_count: $feedback_files_on_disk (pre-computed disk count — use this exact number)
@@ -125,9 +119,6 @@ Schema must include: _schema_version "1.1", _collected_by "alfred-pilot-telemetr
 NEVER include file paths, branch names, commit messages, project names, free-text descriptions, or any PII/PHI.
 NEVER include custom_role_description or persona_gap — these are local-only fields.
 SYSMSG
-
-# Clean up session command log (will be recreated next session)
-rm -f ".claude/.commands-this-session"
 
 # Aggregate collective signals locally (no network call — fast)
 # These will be pushed on next session start by session-start.sh

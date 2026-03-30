@@ -215,7 +215,6 @@ Write a new CLAUDE.md file with this structure. Adapt content from the persona f
 ## Hooks
 
 - **Format on write**: auto-formats files after every edit (detects ruff, prettier, gofmt, etc.)
-- **Track command**: logs slash command usage for reliable telemetry (no Claude memory needed)
 - **Session start**: shows git status, branch safety, onboarding progress, and session resume
 - **Session bookmark**: saves task context on session end for resume next time
 - **Feedback capture**: reminds to save corrections as memories before session ends

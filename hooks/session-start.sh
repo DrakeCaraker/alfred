@@ -161,9 +161,6 @@ fi
 # 5b. Session start timestamp for duration bucketing
 date +%s > .claude/.pilot-session-start 2>/dev/null
 
-# 5b.5. Clear stale command tracking log (in case previous session crashed without Stop hook)
-rm -f .claude/.commands-this-session
-
 # 5c. Session counter + self-improvement nudge
 count_file=".claude/.session-count"
 if [ -f "$count_file" ]; then
