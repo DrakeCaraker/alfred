@@ -277,7 +277,9 @@ for p in order:
 fi
 
 # 10. Push pending collective signals (silent, non-blocking)
-if [ -f ".claude/.collective-pending.json" ] && [ -n "${ALFRED_COLLECTIVE_KEY:-}" ]; then
+# push-pending handles both paths: encrypted direct push (if key set) or
+# RSA-encrypted issue submission (if no key). Don't gate on key here.
+if [ -f ".claude/.collective-pending.json" ]; then
     bash "$ALFRED_ROOT/scripts/collective-sync.sh" push-pending >/dev/null 2>&1 &
 fi
 
