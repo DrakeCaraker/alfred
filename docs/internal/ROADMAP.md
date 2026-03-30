@@ -1,6 +1,6 @@
 # Alfred Roadmap
 
-*Internal planning document. Updated 2026-03-28.*
+*Internal planning document. Updated 2026-03-30.*
 
 ## Current State
 
@@ -25,9 +25,9 @@ Priority: Prove Alfred works as a plugin before any distribution.
 
 **Exit criteria:** Alfred works end-to-end as a plugin in a real project with zero manual workarounds.
 
-## Phase 2: Distribute (Target: 2026-04-11)
+## Phase 2: Distribute + Cross-Tool Foundation (Target: 2026-04-11)
 
-Priority: Get Alfred in front of people who want it.
+Priority: Get Alfred in front of people who want it. Start de-risking platform dependency.
 
 - [ ] Submit to official Claude Code plugin marketplace (claude.ai/settings/plugins/submit)
   - ⚠️ Verify URL works and understand acceptance criteria
@@ -37,18 +37,28 @@ Priority: Get Alfred in front of people who want it.
 - [ ] Share in relevant communities (Claude Code Discord, data science Slack)
 - [ ] Add CHANGELOG.md link to README
 - [ ] Add docs/WHO_ITS_FOR.md link to README
+- [ ] Build cross-tool config export: Cursor `.cursorrules`, Copilot `copilot-instructions.md` (1-day spike)
+  - This is a config export problem, not a full port — Alfred's behavioral science is tool-agnostic
+  - Expands TAM beyond Claude Code users; de-risks Anthropic platform dependency
+- [ ] Post in r/ClaudeAI, HN ("Show HN"), Claude Code Discord for cold-start validation
 
-**Exit criteria:** Alfred discoverable by people actively looking for Claude Code plugins.
+**Exit criteria:** Alfred discoverable by people actively looking for Claude Code plugins. Cross-tool export prototype exists.
 
 ## Phase 3: First Users (Target: 2026-04-25)
 
-Priority: Get 5 real users and learn from them.
+Priority: Get 5 real users and learn from them. **This is the only phase that matters — everything else is speculation until strangers use it and come back.**
 
 - [ ] Monitor collective signal submissions (GitHub issues on DrakeCaraker/alfred)
 - [ ] Track: which personas are chosen, which habits graduate first, which commands are used
 - [ ] Respond to any GitHub issues within 24 hours
 - [ ] Run `/self-improve` weekly to capture emerging patterns
 - [ ] Collect qualitative feedback (DM anyone who installs)
+- [ ] Measure these PMF signals specifically:
+  - Bootstrap completion rate (do they finish setup?)
+  - Session 2 return rate (do they come back?)
+  - Voluntary `/teach` usage (do they seek learning?)
+  - Organic word-of-mouth (do they tell anyone?)
+- [ ] If 0 of these signals after 50 installs → the hypothesis is wrong. Pivot or stop.
 
 **Exit criteria:** 5 users have completed `/bootstrap` and used Alfred for 3+ sessions.
 
@@ -66,17 +76,18 @@ Priority: Respond to real usage data.
 
 ## Deferred (No timeline)
 
-- Cross-tool config adapter (Cursor, Copilot, etc.)
 - Correction confidence scoring (0.60-0.95 scale like claude-reflect)
 - Additional personas (security engineering, mobile dev, DevOps)
-- Team analytics dashboard
+- Team analytics dashboard — reframed as governance + onboarding speed (not habit graduation)
 - Marketing website
+- Advanced habit library (domain-specific habits beyond the core 8, for post-graduation retention)
 
 ## Competitive Watch
 
 - **claude-reflect** (861 stars): If they add teaching or personas, Alfred's differentiation narrows. Alfred's defense: collective learning (network effects).
 - **learn-faster-kit** (139 stars): General learning tool, already in awesome-claude-code. Alfred's differentiation: development habits specifically + 6 professional personas.
 - **SuperClaude** (22K stars): Power-user tool, different audience. Don't compete.
+- **Anthropic native features**: The existential threat. Watch for: native memory/corrections, user profiles, progressive onboarding, team config management. Any of these shipping natively narrows Alfred's value prop. Cross-tool export is the hedge.
 
 ## Key Metrics (once users exist)
 
