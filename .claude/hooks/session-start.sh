@@ -172,7 +172,7 @@ session_count=$((session_count + 1))
 echo "$session_count" > "$count_file"
 
 # Dynamic memory path
-project_key=$(pwd | sed 's|/|-|g; s|^-||')
+project_key=$(pwd | sed 's|[/._]|-|g; s|^-||')
 memory_dir="$HOME/.claude/projects/-${project_key}/memory"
 
 # 6. Feedback memory accumulation check
