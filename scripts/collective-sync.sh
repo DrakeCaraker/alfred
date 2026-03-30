@@ -383,13 +383,19 @@ cmd_ingest() {
   echo '{"signals":[]}' > "$all_signals"
 
   local found=0
+  local skipped=0
   for enc_file in "$tmp_dir"/signals/*.enc; do
     [ -f "$enc_file" ] || continue
     found=1
 
     local dec_file
     dec_file=$(mktemp)
-    decrypt_file "$enc_file" "$dec_file"
+    if ! decrypt_file "$enc_file" "$dec_file" 2>/dev/null; then
+      echo "  Skipping $(basename "$enc_file") (encrypted with a different key)"
+      skipped=$((skipped + 1))
+      rm -f "$dec_file"
+      continue
+    fi
 
     # Merge into all_signals
     python3 -c "
@@ -434,6 +440,10 @@ with open(all_signals_file, 'w') as f:
     cleanup
     trap - EXIT
     return 0
+  fi
+
+  if [ "$skipped" -gt 0 ]; then
+    echo "  ($skipped batch(es) skipped — encrypted with a different key)"
   fi
 
   # Display signals
