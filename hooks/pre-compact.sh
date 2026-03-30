@@ -3,7 +3,20 @@
 echo "Alfred: preserving context before compression..." >&2
 
 # Detect Alfred root
-ALFRED_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+# Detect Alfred root: walk up from script location until we find the marker
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+    ALFRED_ROOT="$CLAUDE_PLUGIN_ROOT"
+else
+    _dir="$(cd "$(dirname "$0")" && pwd)"
+    ALFRED_ROOT="$_dir"
+    while [ "$_dir" != "/" ]; do
+        if [ -f "$_dir/collective/signal_schema.yaml" ]; then
+            ALFRED_ROOT="$_dir"
+            break
+        fi
+        _dir="$(dirname "$_dir")"
+    done
+fi
 
 # Check consent before any data operations
 if [ -f ".claude/.pilot-consent.json" ]; then
