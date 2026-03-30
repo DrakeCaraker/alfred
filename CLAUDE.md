@@ -25,6 +25,7 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 - Version paper drafts explicitly (v1, v2, v3) — never overwrite previous versions
 - Never commit participant-identifiable data (PII, PHI) to git
 - Free-text user data (role descriptions, persona gaps) stays local only (gitignored). Only fixed-taxonomy enums from `collective/role-categories.yaml` may flow to shared telemetry. Never put raw descriptions in telemetry, collective signals, or encrypted staging.
+- Spike-test hook mechanisms before building on them — create a one-line test hook, trigger the event, verify it fires before writing the real implementation
 
 ## Directory Map
 
