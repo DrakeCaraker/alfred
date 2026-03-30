@@ -71,6 +71,7 @@ Then inside Claude Code, type:
 ```
 /plugin marketplace add DrakeCaraker/alfred
 /plugin install alfred@alfred-marketplace
+/reload-plugins
 ```
 
 That's it — Alfred is now available in all your projects. Skip to Step 6.

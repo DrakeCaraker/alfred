@@ -58,9 +58,10 @@ In any Claude Code session:
 ```
 /plugin marketplace add DrakeCaraker/alfred
 /plugin install alfred@alfred-marketplace
+/reload-plugins
 ```
 
-Then open your project and type `/alfred:bootstrap`. Alfred works in any project.
+Then type `/alfred:bootstrap`. Alfred works in any project.
 
 **Starting a new project** (alternative — clones Alfred as a template):
 
@@ -184,6 +185,7 @@ Prompting tips: [`docs/PROMPTING_GUIDE.md`](docs/PROMPTING_GUIDE.md)
 | 4 | **Product Analytics** | Never peek at results before planned end date |
 | 5 | **BI Platform** | Never DROP production tables without backup |
 | 6 | **General** | Never commit .env files; run tests before pushing |
+| 7 | **Writer / Editor** | Never overwrite approved drafts; version explicitly |
 
 ---
 
