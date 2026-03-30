@@ -4,7 +4,7 @@
 
 ## Product
 
-Alfred is a Claude Code plugin that teaches AI-assisted development habits progressively, adapts to 6 professional domains, and compounds user corrections into team-wide automation. It's the only tool that combines teaching, personas, and self-improvement in one system.
+Alfred is a Claude Code plugin that teaches AI-assisted development habits progressively, adapts to 7 professional domains, and compounds user corrections into team-wide automation. It's the only tool that combines teaching, personas, and self-improvement in one system.
 
 ## Market Thesis
 
@@ -31,7 +31,7 @@ People fail at AI-assisted development because of missing habits, not missing AI
 
 **Why second:**
 - Adjacent to academics (many came from research)
-- 4 of 6 Alfred personas built for them
+- 5 of 7 Alfred personas built for them
 - High-value roles ($120-200K salaries = budget for tools)
 - Work in companies that become enterprise prospects
 
@@ -85,7 +85,7 @@ No dollar figures until paying design partners exist. Revenue projections based 
 
 1. **Behavioral science** — scaffolding, analogical transfer, choice architecture. Hard to replicate without understanding learning theory.
 2. **Collective learning network effects** — each user's corrections strengthen the system for everyone.
-3. **6 deep domain personas** — not generic, not configurable — purpose-built translations.
+3. **7 deep domain personas** — not generic, not configurable — purpose-built translations.
 4. **Full pipeline** — teaching → graduation → correction → rule → hook → collective. No competitor has all pieces.
 
 ### Key competitors to watch

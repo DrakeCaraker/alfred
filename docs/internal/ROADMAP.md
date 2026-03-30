@@ -4,23 +4,23 @@
 
 ## Current State
 
-- **Version:** 0.2.0
+- **Version:** 0.3.2
 - **Stars:** 1 (creator only)
-- **Real users:** 0 (untested outside Alfred repo)
-- **Tests:** 192 (126 structural + 29 unit + 16 anonymizer + 21 PII scanner)
+- **Real users:** 0 (Phase 1 validated in dash-shap + fresh install test)
+- **Checks:** 128 via `make check`
 - **Commands:** 19
-- **Personas:** 6
-- **CLAUDE.md rules:** 8
+- **Personas:** 7
+- **CLAUDE.md rules:** 9
 
 ## Phase 1: Validate (Target: 2026-04-04)
 
 Priority: Prove Alfred works as a plugin before any distribution.
 
-- [ ] Test plugin install in dash-shap: `/plugin marketplace add DrakeCaraker/alfred`
-- [ ] Dog-food 3+ sessions with Alfred as a plugin in dash-shap
-- [ ] Document every friction point (missing features, broken paths, confusing UX)
-- [ ] Fix all P0 issues found during dog-fooding
-- [ ] Verify collective signal auto-submission works from a plugin project
+- [x] Test plugin install in dash-shap: `/plugin marketplace add DrakeCaraker/alfred`
+- [x] Dog-food 3+ sessions with Alfred as a plugin in dash-shap
+- [x] Document every friction point (missing features, broken paths, confusing UX)
+- [x] Fix all P0 issues found during dog-fooding (12 PRs: #34-#56)
+- [x] Verify collective signal auto-submission works from a plugin project
 - [ ] Add `CLAUDE_ENABLED=true` repo variable to activate CI autofix
 
 **Exit criteria:** Alfred works end-to-end as a plugin in a real project with zero manual workarounds.
