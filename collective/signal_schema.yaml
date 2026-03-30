@@ -19,7 +19,8 @@ signal:
 
   persona:
     type: enum
-    values: [ml-ds, research, business-analytics, product-analytics, platform-bi, general]
+    # Update this list when adding new personas (also update: bootstrap.md, role-categories.yaml, WHO_ITS_FOR.md)
+    values: [ml-ds, research, business-analytics, product-analytics, platform-bi, general, writer]
     description: "User's persona when signal was generated"
 
   project_type:
