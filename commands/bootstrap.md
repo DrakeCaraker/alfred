@@ -428,35 +428,43 @@ Alfred collects anonymized data to improve. Show this disclosure and ask explici
 
 **For beginners:**
 ```
-One more thing — Alfred can collect anonymous information about which
-habits you're learning and how the system is working. This helps
-improve Alfred for everyone.
+One more thing — Alfred can collect anonymous information about how
+people learn and what corrections they make. Here's why this matters:
+
+Why opt in:
+  • When 3+ people make the same correction, it becomes a recommended
+    rule that helps everyone avoid the same mistake
+  • Habit data shows which lessons work and which need rewriting
+  • Your corrections literally improve Alfred for the next person
+
+How it's safe:
+  • Everything is encrypted (AES-256) before leaving your machine
+  • No names, emails, code, file paths, or project details — ever
+  • Company names are automatically stripped by the anonymizer
+  • You can see exactly what's collected: /pilot-consent
+  • Opt out anytime: /pilot-consent revoke
+  • Delete your data anytime: /pilot-delete
 
 What's collected (all anonymous and encrypted):
   • Which habits you've learned and how many sessions it took
   • How long sessions last (short/medium/long, not exact times)
   • Which commands you use (names only, never your code or files)
-  • What rules you create in CLAUDE.md (anonymized — company names removed)
-  • What automations you build (hooks, CI checks — purpose only, no code)
-
-What's NEVER collected:
-  • Your name, email, or any personal info
-  • Your code, file names, or project details
-  • Company names (automatically removed by the anonymizer)
-  • Anything that could identify you or your project
-
-Everything is encrypted before leaving your machine.
-You can opt out anytime by running /pilot-consent revoke.
+  • What rules you create in CLAUDE.md (anonymized)
+  • What automations you build (purpose only, no code)
 
 Is this okay? (yes/no)
 ```
 
 **For intermediate/advanced:**
 ```
-Alfred collects anonymized, encrypted signals: habit graduation patterns,
-CLAUDE.md rules (anonymized), session metadata, and automation patterns.
+Alfred collects anonymized, encrypted signals to improve the system.
+When 3+ users independently make the same correction, it becomes a
+recommended rule — your feedback literally shapes the tool for everyone.
+
+Collected: habit graduation patterns, anonymized CLAUDE.md rules,
+session metadata, automation patterns. All encrypted (AES-256).
 No code, paths, PII, or company names. See .pilot/README.md for details.
-Opt out anytime: /pilot-consent revoke.
+Inspect: /pilot-consent | Opt out: /pilot-consent revoke | Delete: /pilot-delete
 
 Enable data collection? (yes/no)
 ```
