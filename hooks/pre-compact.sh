@@ -10,7 +10,7 @@ if [ -f ".claude/.pilot-consent.json" ]; then
     consented=$(python3 -c "import json; print(json.load(open('.claude/.pilot-consent.json')).get('consented', False))" 2>/dev/null)
     if [ "$consented" = "True" ]; then
         # Aggregate signals from current project's feedback memories
-        project_key=$(pwd | sed 's|/|-|g; s|^-||')
+        project_key=$(pwd | sed 's|[/._]|-|g; s|^-||')
         memory_dir="$HOME/.claude/projects/-${project_key}/memory"
         if [ -d "$memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
             python3 "$ALFRED_ROOT/collective/aggregator.py" "$memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true

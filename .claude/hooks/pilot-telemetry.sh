@@ -69,7 +69,7 @@ today=$(date +%Y-%m-%d)
 telemetry_file=".pilot/telemetry/${uuid}.json"
 
 # Count feedback memory files on disk
-project_key=$(pwd | sed 's|/|-|g; s|^-||')
+project_key=$(pwd | sed 's|[/._]|-|g; s|^-||')
 memory_dir="$HOME/.claude/projects/-${project_key}/memory"
 feedback_files_on_disk=$(ls "$memory_dir"/feedback_*.md 2>/dev/null | wc -l | tr -d ' ')
 
