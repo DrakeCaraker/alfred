@@ -332,7 +332,75 @@ List the directories you created so the user can see what was set up.
 
 - If `.gitignore` doesn't exist or is minimal (fewer than 5 lines), create or extend it with persona-appropriate patterns (e.g., `__pycache__/`, `.env`, `*.pyc`, `.DS_Store`, `node_modules/`, etc.)
 - If `.githooks/pre-push` doesn't exist, note: "Pre-push hook is available at `.githooks/pre-push`. Activate with: `git config core.hooksPath .githooks`"
-- If `.claude/settings.json` exists but doesn't have hooks configured, note that hooks are available and can be configured
+- If `.claude/settings.json` doesn't exist, create it with this exact structure:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<PLUGIN_HOOKS_PATH>/format-on-write.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<PLUGIN_HOOKS_PATH>/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<PLUGIN_HOOKS_PATH>/session-bookmark.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "<PLUGIN_HOOKS_PATH>/feedback-capture.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "<PLUGIN_HOOKS_PATH>/pilot-telemetry.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<PLUGIN_HOOKS_PATH>/pre-compact.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Replace `<PLUGIN_HOOKS_PATH>` with the actual path to Alfred's hooks:
+- If running as a plugin (`CLAUDE_PLUGIN_ROOT` is set): use `${CLAUDE_PLUGIN_ROOT}/hooks`
+- If running standalone: use `.claude/hooks`
+
+Detect the correct path at bootstrap time and write absolute paths for plugin mode, relative paths for standalone mode.
+
+If `.claude/settings.json` already exists, merge the hooks — do NOT overwrite existing hooks (the project may have its own).
 
 Do NOT overwrite existing `.gitignore` entries — only append missing patterns.
 
@@ -393,7 +461,7 @@ Opt out anytime: /pilot-consent revoke.
 Enable data collection? (yes/no)
 ```
 
-If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}` and `.claude/.pilot-identity.json` with a random UUID.
+If **yes**: Create `.claude/.pilot-consent.json` with `{"consented": true, "consent_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}` and `.claude/.pilot-identity.json` with `{"anonymous_id": "<random-uuid>", "created_date": "<today>"}`. The key MUST be `anonymous_id`, not `id`.
 
 If **no**: Create `.claude/.pilot-consent.json` with `{"consented": false, "declined_date": "<today>", "schema_version": "<CURRENT_VERSION from collective/signal_schema.yaml>"}`. Say: "No problem. You can change this anytime with /pilot-consent."
 
