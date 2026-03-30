@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Stop hook: systemMessage telling Claude to record pilot telemetry
-# This outputs a systemMessage that Claude reads at session end
+# Stop hook: write session telemetry directly (no Claude action needed)
+# Fires after each Claude response. Writes JSON to .pilot/telemetry/
 
 # Only fire if user has consented
 if [ ! -f ".claude/.pilot-consent.json" ]; then
@@ -12,12 +12,12 @@ if [ "$consented" != "True" ]; then
     exit 0
 fi
 
-# Read identity
+# Read identity (support both "anonymous_id" and legacy "id" key)
 if [ ! -f ".claude/.pilot-identity.json" ]; then
     exit 0
 fi
 
-uuid=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['anonymous_id'])" ".claude/.pilot-identity.json" 2>/dev/null)
+uuid=$(python3 -c "import json, sys; d=json.load(open(sys.argv[1])); print(d.get('anonymous_id', d.get('id', '')))" ".claude/.pilot-identity.json" 2>/dev/null)
 if [ -z "$uuid" ]; then
     exit 0
 fi
@@ -42,14 +42,16 @@ if [ -f ".claude/.pilot-session-start" ]; then
     fi
 fi
 
-# Read onboarding state for context
+# Read onboarding state
 persona="unknown"
 coding_level="unknown"
 code_complexity_level=1
+patterns_graduated=0
 if [ -f ".claude/.onboarding-state.json" ]; then
-    persona=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('persona','unknown'))" ".claude/.onboarding-state.json" 2>/dev/null)
-    coding_level=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('coding_level','unknown'))" ".claude/.onboarding-state.json" 2>/dev/null)
-    code_complexity_level=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('code_complexity_level',1))" ".claude/.onboarding-state.json" 2>/dev/null)
+    persona=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('persona','unknown'))" 2>/dev/null)
+    coding_level=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('coding_level','unknown'))" 2>/dev/null)
+    code_complexity_level=$(python3 -c "import json; print(json.load(open('.claude/.onboarding-state.json')).get('code_complexity_level',1))" 2>/dev/null)
+    patterns_graduated=$(python3 -c "import json; d=json.load(open('.claude/.onboarding-state.json')); print(sum(1 for p in d.get('patterns',{}).values() if p.get('graduated')))" 2>/dev/null || echo 0)
 fi
 
 # Determine branch type
@@ -66,63 +68,77 @@ esac
 today=$(date +%Y-%m-%d)
 telemetry_file=".pilot/telemetry/${uuid}.json"
 
-# Get current session number
-session_number=1
-if [ -f "$telemetry_file" ]; then
-    session_number=$(python3 -c "
-import json, sys
-d = json.load(open(sys.argv[1]))
-print(len(d.get('sessions', [])) + 1)
-" "$telemetry_file" 2>/dev/null || echo 1)
-fi
-
-# Count feedback memory files on disk (reliable, not Claude-reported)
+# Count feedback memory files on disk
 project_key=$(pwd | sed 's|/|-|g; s|^-||')
 memory_dir="$HOME/.claude/projects/-${project_key}/memory"
 feedback_files_on_disk=$(ls "$memory_dir"/feedback_*.md 2>/dev/null | wc -l | tr -d ' ')
 
-# Output systemMessage for Claude to act on
-cat >&2 << SYSMSG
-PILOT TELEMETRY — Record session data now.
+# Write telemetry directly via Python — no Claude action needed
+mkdir -p .pilot/telemetry
+export TELEM_FILE="$telemetry_file" TELEM_UUID="$uuid" TELEM_PERSONA="$persona" \
+       TELEM_CODING_LEVEL="$coding_level" TELEM_CODE_COMPLEXITY="$code_complexity_level" \
+       TELEM_DURATION="$duration_bucket" TELEM_BRANCH_TYPE="$branch_type" \
+       TELEM_DATE="$today" TELEM_FEEDBACK_COUNT="$feedback_files_on_disk" \
+       TELEM_PATTERNS_GRADUATED="$patterns_graduated"
 
-Update or create $telemetry_file with this session's data:
-- anonymous_id: $uuid
-- persona: $persona
-- coding_level: $coding_level
-- code_complexity_level: $code_complexity_level
-- session_number: $session_number
-- date: $today
-- duration_bucket: $duration_bucket
-- branch_type: $branch_type
+python3 << 'PYEOF'
+import json, os
 
-Append a new session entry to the sessions array. Include:
-- commands_used: list the /alfred: or / slash commands you used this session (names only, no arguments — report from memory, best-effort)
-- graduated_this_session: pattern names graduated this session (check .claude/.onboarding-state.json)
-- patterns_state: current state of all patterns from .claude/.onboarding-state.json
-- feedback_memory_count: $feedback_files_on_disk (pre-computed disk count — use this exact number)
-- bookmark_saved: whether a bookmark was saved
+tf = os.environ["TELEM_FILE"]
+uuid = os.environ["TELEM_UUID"]
+today = os.environ["TELEM_DATE"]
 
-Update the aggregates object:
-- total_sessions: length of sessions array
-- total_patterns_graduated: count of graduated patterns
-- graduation_order: ordered list of graduated pattern names
-- most_used_commands: top commands across all sessions
-- days_active: count of unique dates in sessions
-- first_graduation_session: session_number of first graduation (or null)
+# Load existing or create new
+if os.path.exists(tf):
+    with open(tf) as f:
+        data = json.load(f)
+else:
+    data = {
+        "_schema_version": "1.1",
+        "_collected_by": "alfred-pilot-telemetry",
+        "_privacy_notice": "No file paths, branch names, commit messages, project names, or PII/PHI collected.",
+        "anonymous_id": uuid,
+        "persona": os.environ["TELEM_PERSONA"],
+        "coding_level": os.environ["TELEM_CODING_LEVEL"],
+        "code_complexity_level": int(os.environ["TELEM_CODE_COMPLEXITY"]),
+        "sessions": [],
+        "aggregates": {}
+    }
 
-Also include these persona intelligence fields:
-- used_custom_role: true if custom_role_description exists in onboarding state, false otherwise
-- persona_fit: value of persona_fit from onboarding state (true/false/null if not yet checked)
-- custom_role_category: value of custom_role_category from onboarding state (enum from collective/role-categories.yaml, or null)
+# One entry per date (Stop fires after every response — deduplicate)
+existing_dates = [s.get("date") for s in data.get("sessions", [])]
+if today in existing_dates:
+    # Update mutable fields only
+    for s in data["sessions"]:
+        if s.get("date") == today:
+            s["duration_bucket"] = os.environ["TELEM_DURATION"]
+            s["feedback_memory_count"] = int(os.environ["TELEM_FEEDBACK_COUNT"])
+            break
+else:
+    data["sessions"].append({
+        "session_number": len(data["sessions"]) + 1,
+        "date": today,
+        "duration_bucket": os.environ["TELEM_DURATION"],
+        "branch_type": os.environ["TELEM_BRANCH_TYPE"],
+        "commands_used": [],
+        "graduated_this_session": [],
+        "feedback_memory_count": int(os.environ["TELEM_FEEDBACK_COUNT"]),
+        "bookmark_saved": os.path.exists(".claude/.session-bookmark.json")
+    })
 
-Schema must include: _schema_version "1.1", _collected_by "alfred-pilot-telemetry", _privacy_notice.
-NEVER include file paths, branch names, commit messages, project names, free-text descriptions, or any PII/PHI.
-NEVER include custom_role_description or persona_gap — these are local-only fields.
-SYSMSG
+# Update aggregates
+sessions = data.get("sessions", [])
+data["aggregates"] = {
+    "total_sessions": len(sessions),
+    "total_patterns_graduated": int(os.environ["TELEM_PATTERNS_GRADUATED"]),
+    "days_active": len(set(s.get("date") for s in sessions)),
+}
 
-# Aggregate collective signals locally (no network call — fast)
-# These will be pushed on next session start by session-start.sh
-# Scan all project memory dirs for feedback files (handles path variations)
+with open(tf, "w") as f:
+    json.dump(data, f, indent=2)
+PYEOF
+
+# Aggregate collective signals locally (non-blocking)
 active_memory_dir=""
 while IFS= read -r feedback_file; do
     active_memory_dir=$(dirname "$feedback_file")
