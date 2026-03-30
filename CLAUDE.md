@@ -33,14 +33,18 @@ Key concern: rigor, reproducibility, citation accuracy, IRB compliance.
 .
 ├── CLAUDE.md
 ├── README.md
-├── docs/
-├── scripts/
-├── data/raw/          (original, unmodified data — read-only)
-├── data/processed/    (cleaned, transformed data)
-├── analysis/          (numbered scripts: 01_clean.py, 02_analyze.py, ...)
-├── paper/             (manuscript source — LaTeX or Markdown)
-├── figures/           (publication-quality figures with provenance)
-└── results/           (analysis outputs, tables, statistics)
+├── Makefile               (check, audit, fix, publish targets)
+├── .claude/commands/      (slash command definitions)
+├── .claude/hooks/         (session-start, format-on-write, telemetry, etc.)
+├── .claude-plugin/        (plugin.json manifest)
+├── collective/            (aggregator, anonymizer, signal schema, keys)
+├── commands/              (mirror of .claude/commands/ — CI enforces sync)
+├── docs/                  (user guides, internal strategy docs)
+├── hooks/                 (mirror of .claude/hooks/)
+├── personas/              (7 persona templates: ml-ds, research, writer, etc.)
+├── scripts/               (audit, PII scanner, smoke test, collective-sync)
+├── skills/                (smart-suggestions, persona-evolve, etc.)
+└── .pilot/                (telemetry data, privacy docs)
 ```
 
 ## Running
