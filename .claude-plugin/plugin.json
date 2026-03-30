@@ -1,7 +1,7 @@
 {
   "name": "alfred",
   "description": "AI coding assistant that teaches development habits in your domain's language, then turns your corrections into permanent rules and automated guards.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": {
     "name": "Drake Caraker",
     "email": "DrakeCaraker@users.noreply.github.com"
