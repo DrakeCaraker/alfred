@@ -86,7 +86,6 @@ make fix      # Auto-fix: sync commands + hooks + permissions
 ## Hooks
 
 - **Format on write**: auto-formats files after every edit (detects ruff, prettier, gofmt, etc.)
-- **Track command**: logs slash command usage for reliable telemetry (no Claude memory needed)
 - **Session start**: shows git status, branch safety, onboarding progress, and session resume
 - **Session bookmark**: notifies user that session progress is being saved
 - **Feedback capture**: notifies user that improvements are being checked
