@@ -57,7 +57,7 @@ Follow the [setup guide](docs/GETTING_STARTED.md) — it walks through everythin
 In any Claude Code session:
 ```
 /plugin marketplace add DrakeCaraker/alfred
-/plugin install alfred@DrakeCaraker/alfred
+/plugin install alfred@alfred-marketplace
 ```
 
 Then open your project and type `/alfred:bootstrap`. Alfred works in any project.

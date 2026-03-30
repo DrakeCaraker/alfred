@@ -111,7 +111,7 @@ Use `/self-improve` to trigger promotion analysis.
 
 ## Personas
 
-Alfred ships with 6 personas, each providing:
+Alfred ships with 7 personas, each providing:
 - **Domain context** for CLAUDE.md
 - **Guardrails** specific to the domain
 - **Analogy map** translating the 8 habits into domain language
