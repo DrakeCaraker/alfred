@@ -61,6 +61,7 @@ target/
 .claude/.session-bookmark.json
 .claude/.pilot-session-start
 .claude/.pilot-nudge-count
+.claude/.last-signal-push
 
 # Persona state (local per-user)
 .claude/alfred-persona.yaml
