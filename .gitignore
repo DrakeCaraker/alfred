@@ -68,6 +68,14 @@ target/
 # Local settings (per-user overrides)
 .claude/settings.local.json
 
+# Pilot identity and consent (per-user, never share)
+.claude/.pilot-consent.json
+.claude/.pilot-identity.json
+.claude/.collective-pending.json
+
+# Telemetry data (per-user)
+.pilot/telemetry/
+
 # Persona intelligence (private, encrypted per-user)
 .pilot/private/
 .claude/.pilot-intel-key
