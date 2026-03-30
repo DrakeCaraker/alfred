@@ -123,6 +123,7 @@ Alfred is per-project but team-aware. Each member runs `/bootstrap` with their o
 ```
 /plugin marketplace add DrakeCaraker/alfred
 /plugin install alfred@alfred-marketplace
+/reload-plugins
 ```
 
 Then run `/alfred:bootstrap` in any project.
