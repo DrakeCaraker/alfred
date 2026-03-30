@@ -17,6 +17,18 @@ $ARGUMENTS — optional: `revoke` to revoke consent, `status` to check current s
    ```
    === Alfred Data Collection ===
 
+   WHY OPT IN:
+     When 3+ people independently make the same correction, it becomes
+     a recommended rule — your feedback improves Alfred for everyone.
+     Habit data shows which lessons work and which need rewriting.
+     You make Alfred better; Alfred makes the next person better.
+
+   HOW IT'S SAFE:
+     Everything is encrypted (AES-256) before leaving your machine.
+     7 guard layers: schema design, PII scrubber, pre-commit hook,
+     pre-push hook, CI checks, branch protection, encryption.
+     You can inspect, export, or delete your data at any time.
+
    Alfred collects two types of anonymized data (both under one consent):
 
    TELEMETRY (session metadata):
