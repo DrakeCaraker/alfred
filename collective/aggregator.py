@@ -98,6 +98,18 @@ def detect_promotion(text: str) -> str:
     return "memory"
 
 
+def detect_persona() -> str:
+    """Read persona from onboarding state if available."""
+    state_file = Path(".claude/.onboarding-state.json")
+    if state_file.exists():
+        try:
+            data = json.loads(state_file.read_text())
+            return data.get("persona", "unknown")
+        except (json.JSONDecodeError, OSError):
+            pass
+    return "unknown"
+
+
 def process_memories(memory_dir: str) -> list[dict]:
     """Process all feedback memories in a directory into signals."""
     memory_path = Path(memory_dir)
@@ -107,8 +119,9 @@ def process_memories(memory_dir: str) -> list[dict]:
     if not feedback_files:
         return signals
 
-    # Detect project type from alfred.yaml if available
+    # Detect project type and persona
     project_type = os.environ.get("ALFRED_PROJECT_TYPE", "unknown")
+    persona = detect_persona()
 
     # Group by theme to count occurrences
     patterns_seen: dict[str, int] = {}
@@ -131,11 +144,15 @@ def process_memories(memory_dir: str) -> list[dict]:
         patterns_seen[pattern_key] = patterns_seen.get(pattern_key, 0) + 1
 
         signals.append({
+            "type": "correction",
+            "schema_version": "2.0",
+            "persona": persona,
             "category": category,
             "pattern": pattern,
             "local_occurrences": patterns_seen[pattern_key],
             "promoted_to": promoted_to,
             "project_type": project_type,
+            "contributed_at": str(date.today()),
         })
 
     # Update occurrence counts (final pass)
@@ -164,7 +181,7 @@ def main():
         sys.exit(0)
 
     output = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "generated_date": str(date.today()),
         "signal_count": len(signals),
         "signals": signals,
@@ -224,6 +241,10 @@ def run_tests():
         check(signals[0]["category"] == "testing", "correctly categorized as testing")
         check(len(signals[0]["pattern"]) <= 200, "pattern within 200 char limit")
         check(signals[0]["pattern"] != "", "pattern is not empty")
+        check(signals[0].get("type") == "correction", "signal has type=correction")
+        check(signals[0].get("schema_version") == "2.0", "signal has schema_version=2.0")
+        check("persona" in signals[0], "signal has persona field")
+        check("contributed_at" in signals[0], "signal has contributed_at field")
 
         # Test 3: Pattern is anonymized (no paths)
         with open(os.path.join(tmpdir, "feedback_test2.md"), "w") as f:
