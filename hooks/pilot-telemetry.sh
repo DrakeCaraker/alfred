@@ -138,15 +138,29 @@ with open(tf, "w") as f:
     json.dump(data, f, indent=2)
 PYEOF
 
-# Aggregate collective signals locally (non-blocking)
-active_memory_dir=""
-while IFS= read -r feedback_file; do
-    active_memory_dir=$(dirname "$feedback_file")
-    break
-done < <(find "$HOME/.claude/projects" -name "feedback_*.md" -type f 2>/dev/null | head -1)
+# Aggregate collective signals from current project's feedback memories
+# Use project_key (already computed above) to scope to this project only
+if [ -d "$memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
+    python3 "$ALFRED_ROOT/collective/aggregator.py" "$memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
+fi
 
-if [ -n "$active_memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
-    python3 "$ALFRED_ROOT/collective/aggregator.py" "$active_memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
+# Push pending signals with 30-minute debounce (Stop fires after every response)
+if [ -f ".claude/.collective-pending.json" ]; then
+    should_push=false
+    push_marker=".claude/.last-signal-push"
+    if [ ! -f "$push_marker" ]; then
+        should_push=true
+    else
+        last_push=$(cat "$push_marker" 2>/dev/null || echo 0)
+        now_epoch=$(date +%s)
+        if [ $((now_epoch - last_push)) -gt 1800 ]; then
+            should_push=true
+        fi
+    fi
+    if [ "$should_push" = true ]; then
+        bash "$ALFRED_ROOT/scripts/collective-sync.sh" push-pending >/dev/null 2>&1 &
+        date +%s > "$push_marker"
+    fi
 fi
 
 exit 0
