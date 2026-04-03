@@ -79,8 +79,9 @@ jobs:
         if: steps.extract.outputs.valid == 'true'
         id: decrypt
         run: |
-          # Write private key from secret
-          echo "$ALFRED_COLLECTIVE_PRIVATE_KEY" > /tmp/private.pem
+          # Write private key from secret (printf preserves PEM newlines)
+          printf '%s\n' "$ALFRED_COLLECTIVE_PRIVATE_KEY" > /tmp/private.pem
+          chmod 600 /tmp/private.pem
 
           # Decode base64
           base64 -d /tmp/aes_key.b64 > /tmp/aes_key.enc
@@ -116,7 +117,7 @@ jobs:
           ALLOWED_TYPES = ['correction','rule','graduation','automation','gap']
           ALLOWED_HABITS = ['context_before_action','scope_before_work','save_points','safe_experimentation','one_change_one_test','automated_recovery','provenance','self_improvement']
           ALLOWED_LEVELS = ['beginner','intermediate','advanced']
-          ALLOWED_PERSONAS = ['ml-ds','research','business-analytics','product-analytics','platform-bi','general','unknown']
+          ALLOWED_PERSONAS = ['ml-ds','research','business-analytics','product-analytics','platform-bi','general','writer','unknown']
 
           with open('/tmp/new_signals.json') as f:
               data = json.load(f)
