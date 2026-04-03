@@ -80,16 +80,9 @@ jobs:
         id: decrypt
         run: |
           # Write private key from secret
-          # Use printenv to avoid any shell interpolation issues
-          printenv ALFRED_COLLECTIVE_PRIVATE_KEY > /tmp/private.pem
+          # GitHub secrets store PEM as single line with literal \n — restore newlines
+          echo "$ALFRED_COLLECTIVE_PRIVATE_KEY" | sed 's/\\n/\n/g' > /tmp/private.pem
           chmod 600 /tmp/private.pem
-
-          # Debug: check PEM format (no content leaked)
-          echo "PEM file size: $(wc -c < /tmp/private.pem) bytes"
-          echo "PEM line count: $(wc -l < /tmp/private.pem) lines"
-          echo "First line: $(head -1 /tmp/private.pem)"
-          echo "Last line: $(tail -1 /tmp/private.pem)"
-          openssl rsa -in /tmp/private.pem -check -noout 2>&1 || echo "RSA check failed"
 
           # Decode base64
           base64 -d /tmp/aes_key.b64 > /tmp/aes_key.enc
