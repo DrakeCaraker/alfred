@@ -79,25 +79,9 @@ jobs:
         if: steps.extract.outputs.valid == 'true'
         id: decrypt
         run: |
-          # Write private key from secret using Python for reliable newline handling
-          # GitHub secrets may store PEM with literal \n, \\n, or stripped newlines
-          python3 -c "
-          import os
-          key = os.environ['ALFRED_COLLECTIVE_PRIVATE_KEY']
-          # Restore newlines from any escaped format
-          for token in ['\\\\n', '\\n']:
-              key = key.replace(token, chr(10))
-          with open('/tmp/private.pem', 'w') as f:
-              f.write(key.strip() + chr(10))
-          "
+          # Write private key from secret (stored via gh secret set < file)
+          printenv ALFRED_COLLECTIVE_PRIVATE_KEY > /tmp/private.pem
           chmod 600 /tmp/private.pem
-
-          # Verify key is valid before proceeding
-          echo "PEM lines: $(wc -l < /tmp/private.pem)"
-          openssl rsa -in /tmp/private.pem -check -noout 2>&1 || {
-            echo "Key validation failed. Trying PKCS8 format..."
-            openssl pkey -in /tmp/private.pem -check -noout 2>&1 || echo "PKCS8 check also failed"
-          }
 
           # Decode base64
           base64 -d /tmp/aes_key.b64 > /tmp/aes_key.enc
