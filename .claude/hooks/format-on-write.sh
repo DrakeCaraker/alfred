@@ -23,12 +23,12 @@ case "$f" in
 esac
 
 # Read preferred formatter from alfred.yaml (if configured)
-# Detect Alfred root: walk up from script location until we find the marker
+# Detect Alfred root: CLAUDE_PLUGIN_ROOT > walk-up marker > .alfred-root file
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     ALFRED_ROOT="$CLAUDE_PLUGIN_ROOT"
 else
     _dir="$(cd "$(dirname "$0")" && pwd)"
-    ALFRED_ROOT="$_dir"
+    ALFRED_ROOT=""
     while [ "$_dir" != "/" ]; do
         if [ -f "$_dir/collective/signal_schema.yaml" ]; then
             ALFRED_ROOT="$_dir"
@@ -36,8 +36,11 @@ else
         fi
         _dir="$(dirname "$_dir")"
     done
+    if [ -z "$ALFRED_ROOT" ] && [ -f ".claude/.alfred-root" ]; then
+        ALFRED_ROOT=$(cat ".claude/.alfred-root" 2>/dev/null)
+    fi
 fi
-preferred=$("$ALFRED_ROOT/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
+preferred=$("${ALFRED_ROOT:-/dev/null}/scripts/alfred-config.sh" formatting.tool auto 2>/dev/null)
 
 # If a specific formatter is configured, use it directly
 if [ "$preferred" != "auto" ] && [ "$preferred" != "none" ]; then

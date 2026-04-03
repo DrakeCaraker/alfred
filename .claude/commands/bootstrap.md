@@ -400,6 +400,11 @@ Replace `<PLUGIN_HOOKS_PATH>` with the actual path to Alfred's hooks:
 
 Detect the correct path at bootstrap time and write absolute paths for plugin mode, relative paths for standalone mode.
 
+**Also write `.claude/.alfred-root`** with the resolved ALFRED_ROOT path (the directory containing `collective/signal_schema.yaml`). This allows hooks to find Alfred's scripts even when the walk-up marker search fails (e.g., in plugin-bootstrapped projects that don't have a `collective/` directory). Example:
+```bash
+echo "$RESOLVED_ALFRED_ROOT" > .claude/.alfred-root
+```
+
 If `.claude/settings.json` already exists, merge the hooks — do NOT overwrite existing hooks (the project may have its own).
 
 Do NOT overwrite existing `.gitignore` entries — only append missing patterns.
