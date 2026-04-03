@@ -73,6 +73,7 @@ target/
 .claude/.pilot-consent.json
 .claude/.pilot-identity.json
 .claude/.collective-pending.json
+.claude/.alfred-root
 
 # Telemetry data (per-user)
 .pilot/telemetry/

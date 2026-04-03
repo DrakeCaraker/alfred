@@ -2,13 +2,12 @@
 # PreCompact hook: preserve context + push signals before compression
 echo "Alfred: preserving context before compression..." >&2
 
-# Detect Alfred root
-# Detect Alfred root: walk up from script location until we find the marker
+# Detect Alfred root: CLAUDE_PLUGIN_ROOT > walk-up marker > .alfred-root file
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     ALFRED_ROOT="$CLAUDE_PLUGIN_ROOT"
 else
     _dir="$(cd "$(dirname "$0")" && pwd)"
-    ALFRED_ROOT="$_dir"
+    ALFRED_ROOT=""
     while [ "$_dir" != "/" ]; do
         if [ -f "$_dir/collective/signal_schema.yaml" ]; then
             ALFRED_ROOT="$_dir"
@@ -16,6 +15,9 @@ else
         fi
         _dir="$(dirname "$_dir")"
     done
+    if [ -z "$ALFRED_ROOT" ] && [ -f ".claude/.alfred-root" ]; then
+        ALFRED_ROOT=$(cat ".claude/.alfred-root" 2>/dev/null)
+    fi
 fi
 
 # Check consent before any data operations

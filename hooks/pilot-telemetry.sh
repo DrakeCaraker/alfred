@@ -23,12 +23,12 @@ if [ -z "$uuid" ]; then
 fi
 
 # Detect Alfred root for script references
-# Detect Alfred root: walk up from script location until we find the marker
+# Priority: CLAUDE_PLUGIN_ROOT > walk-up marker > .alfred-root file
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     ALFRED_ROOT="$CLAUDE_PLUGIN_ROOT"
 else
     _dir="$(cd "$(dirname "$0")" && pwd)"
-    ALFRED_ROOT="$_dir"
+    ALFRED_ROOT=""
     while [ "$_dir" != "/" ]; do
         if [ -f "$_dir/collective/signal_schema.yaml" ]; then
             ALFRED_ROOT="$_dir"
@@ -36,6 +36,14 @@ else
         fi
         _dir="$(dirname "$_dir")"
     done
+    # Fallback: read stored path from bootstrap
+    if [ -z "$ALFRED_ROOT" ] && [ -f ".claude/.alfred-root" ]; then
+        ALFRED_ROOT=$(cat ".claude/.alfred-root" 2>/dev/null)
+    fi
+    # If still not found, hooks that need ALFRED_ROOT will silently skip
+    if [ -z "$ALFRED_ROOT" ]; then
+        ALFRED_ROOT=""
+    fi
 fi
 
 # Calculate duration bucket
@@ -153,12 +161,12 @@ PYEOF
 
 # Aggregate collective signals from current project's feedback memories
 # Use project_key (already computed above) to scope to this project only
-if [ -d "$memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
+if [ -n "$ALFRED_ROOT" ] && [ -d "$memory_dir" ] && [ -f "$ALFRED_ROOT/collective/aggregator.py" ]; then
     python3 "$ALFRED_ROOT/collective/aggregator.py" "$memory_dir" --save .claude/.collective-pending.json >/dev/null 2>&1 || true
 fi
 
 # Push pending signals with 30-minute debounce (Stop fires after every response)
-if [ -f ".claude/.collective-pending.json" ]; then
+if [ -n "$ALFRED_ROOT" ] && [ -f ".claude/.collective-pending.json" ]; then
     should_push=false
     push_marker=".claude/.last-signal-push"
     if [ ! -f "$push_marker" ]; then
